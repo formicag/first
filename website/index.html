@@ -3,87 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping List - Gianluca & Nicole</title>
+    <title>Shopping List</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🛒 Shopping List</h1>
-            <p class="subtitle">Shared shopping list for Gianluca & Nicole</p>
+            <p class="subtitle">Your personal shopping list</p>
+            <button id="logout-btn" class="btn-logout">Logout</button>
         </header>
 
         <div class="lists-container">
-            <!-- Gianluca's List -->
+            <!-- User's List (dynamically loaded) -->
             <div class="list-section">
                 <div class="list-header">
-                    <h2>Gianluca's List</h2>
-                    <span class="item-count" id="gianluca-count">0 items</span>
+                    <h2 id="user-list-title">My List</h2>
+                    <span class="item-count" id="item-count">0 items</span>
                 </div>
 
                 <div class="add-item-form">
                     <h3>Add New Item</h3>
-                    <form id="gianluca-form">
+                    <form id="add-item-form">
                         <div class="form-group">
-                            <input type="text" id="gianluca-item-name" placeholder="Item name" required>
+                            <input type="text" id="item-name" placeholder="Item name" required>
                         </div>
                         <div class="form-row">
-                            <input type="number" id="gianluca-quantity" placeholder="Qty" min="1" value="1" required>
-                            <input type="text" id="gianluca-category" placeholder="Category (optional)">
+                            <input type="number" id="quantity" placeholder="Qty" min="1" value="1" required>
+                            <input type="text" id="category" placeholder="Category (optional)">
                         </div>
                         <button type="submit" class="btn-add">Add Item</button>
                     </form>
                 </div>
 
-                <button class="btn-email" id="gianluca-email-btn" data-user-id="Gianluca">
+                <button class="btn-email" id="email-btn">
                     📧 Email My List
                 </button>
 
-                <button class="btn-categorize" id="gianluca-categorize-btn" data-user-id="Gianluca">
+                <button class="btn-categorize" id="categorize-btn">
                     🤖 Auto-Categorize Items
                 </button>
 
-                <div class="items-list" id="gianluca-items">
-                    <div class="loading">Loading items...</div>
-                </div>
-            </div>
-
-            <!-- Nicole's List -->
-            <div class="list-section">
-                <div class="list-header">
-                    <h2>Nicole's List</h2>
-                    <span class="item-count" id="nicole-count">0 items</span>
-                </div>
-
-                <div class="add-item-form">
-                    <h3>Add New Item</h3>
-                    <form id="nicole-form">
-                        <div class="form-group">
-                            <input type="text" id="nicole-item-name" placeholder="Item name" required>
-                        </div>
-                        <div class="form-row">
-                            <input type="number" id="nicole-quantity" placeholder="Qty" min="1" value="1" required>
-                            <input type="text" id="nicole-category" placeholder="Category (optional)">
-                        </div>
-                        <button type="submit" class="btn-add">Add Item</button>
-                    </form>
-                </div>
-
-                <button class="btn-email" id="nicole-email-btn" data-user-id="Nicole">
-                    📧 Email My List
-                </button>
-
-                <button class="btn-categorize" id="nicole-categorize-btn" data-user-id="Nicole">
-                    🤖 Auto-Categorize Items
-                </button>
-
-                <div class="items-list" id="nicole-items">
+                <div class="items-list" id="items-list">
                     <div class="loading">Loading items...</div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="auth.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

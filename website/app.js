@@ -1,44 +1,47 @@
 // API Configuration
 const API_BASE_URL = 'https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev';
 
-// User IDs
-const USERS = {
-    GIANLUCA: 'Gianluca',
-    NICOLE: 'Nicole'
-};
-
-// Initialize app when DOM is loaded
+// Check authentication on page load
 document.addEventListener('DOMContentLoaded', () => {
-    // Load both lists
-    loadUserItems(USERS.GIANLUCA);
-    loadUserItems(USERS.NICOLE);
+    // Check if user is authenticated
+    if (!isAuthenticated()) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Get user ID and update UI
+    const userId = getUserId();
+    document.getElementById('user-list-title').textContent = `${userId}'s List`;
+
+    // Load user's items
+    loadUserItems();
 
     // Setup form handlers
-    setupFormHandler(USERS.GIANLUCA);
-    setupFormHandler(USERS.NICOLE);
+    setupFormHandler();
+    setupEmailButtonHandler();
+    setupCategorizeButtonHandler();
 
-    // Setup email button handlers
-    setupEmailButtonHandler(USERS.GIANLUCA);
-    setupEmailButtonHandler(USERS.NICOLE);
-
-    // Setup categorize button handlers
-    setupCategorizeButtonHandler(USERS.GIANLUCA);
-    setupCategorizeButtonHandler(USERS.NICOLE);
+    // Setup logout button
+    document.getElementById('logout-btn').addEventListener('click', logout);
 });
 
 /**
- * Load items for a specific user
+ * Load items for the logged-in user
  */
-async function loadUserItems(userId) {
-    const itemsContainer = document.getElementById(`${userId.toLowerCase()}-items`);
-    const countElement = document.getElementById(`${userId.toLowerCase()}-count`);
+async function loadUserItems() {
+    const itemsContainer = document.getElementById('items-list');
+    const countElement = document.getElementById('item-count');
 
     try {
         itemsContainer.innerHTML = '<div class="loading">Loading items...</div>';
 
-        const response = await fetch(`${API_BASE_URL}/items/${userId}?bought=all`);
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/user?bought=all`);
 
         if (!response.ok) {
+            if (response.status === 401) {
+                logout();
+                return;
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -52,10 +55,8 @@ async function loadUserItems(userId) {
         if (items.length === 0) {
             itemsContainer.innerHTML = '<div class="empty-state">No items yet. Add your first item!</div>';
         } else {
-            itemsContainer.innerHTML = renderGroupedItems(items, userId);
-
-            // Attach event listeners
-            attachItemEventListeners(userId);
+            itemsContainer.innerHTML = renderGroupedItems(items);
+            attachItemEventListeners();
         }
 
     } catch (error) {
@@ -65,10 +66,31 @@ async function loadUserItems(userId) {
 }
 
 /**
+ * Fetch with authentication header
+ */
+async function fetchWithAuth(url, options = {}) {
+    const token = getIdToken();
+
+    if (!token || !isAuthenticated()) {
+        logout();
+        return;
+    }
+
+    const headers = {
+        ...options.headers,
+        'Authorization': token
+    };
+
+    return fetch(url, {
+        ...options,
+        headers
+    });
+}
+
+/**
  * Group items by category and render them
  */
-function renderGroupedItems(items, userId) {
-    // Group items by category
+function renderGroupedItems(items) {
     const grouped = {};
 
     items.forEach(item => {
@@ -79,17 +101,14 @@ function renderGroupedItems(items, userId) {
         grouped[category].push(item);
     });
 
-    // Sort categories alphabetically, with Uncategorized last
     const sortedCategories = Object.keys(grouped).sort((a, b) => {
         if (a === 'Uncategorized') return 1;
         if (b === 'Uncategorized') return -1;
         return a.localeCompare(b);
     });
 
-    // Build HTML for each category
     let html = '';
     sortedCategories.forEach(category => {
-        // Sort items within category: unbought first, then bought
         const categoryItems = grouped[category].sort((a, b) => {
             if (a.bought === b.bought) return 0;
             return a.bought ? 1 : -1;
@@ -97,7 +116,7 @@ function renderGroupedItems(items, userId) {
 
         html += `<div class="category-group">`;
         html += `<div class="category-header">${escapeHtml(category)}</div>`;
-        html += categoryItems.map(item => createItemHTML(item, userId)).join('');
+        html += categoryItems.map(item => createItemHTML(item)).join('');
         html += `</div>`;
     });
 
@@ -107,7 +126,7 @@ function renderGroupedItems(items, userId) {
 /**
  * Create HTML for a shopping item
  */
-function createItemHTML(item, userId) {
+function createItemHTML(item) {
     const boughtClass = item.bought ? 'bought' : '';
     const checkedAttr = item.bought ? 'checked' : '';
 
@@ -117,7 +136,6 @@ function createItemHTML(item, userId) {
                 type="checkbox"
                 class="item-checkbox"
                 ${checkedAttr}
-                data-user-id="${userId}"
                 data-item-id="${item.itemId}"
             >
             <div class="item-details">
@@ -128,7 +146,6 @@ function createItemHTML(item, userId) {
             </div>
             <button
                 class="btn-delete"
-                data-user-id="${userId}"
                 data-item-id="${item.itemId}"
             >
                 Delete
@@ -140,16 +157,14 @@ function createItemHTML(item, userId) {
 /**
  * Attach event listeners to checkboxes and delete buttons
  */
-function attachItemEventListeners(userId) {
-    const itemsContainer = document.getElementById(`${userId.toLowerCase()}-items`);
+function attachItemEventListeners() {
+    const itemsContainer = document.getElementById('items-list');
 
-    // Checkbox listeners
     const checkboxes = itemsContainer.querySelectorAll('.item-checkbox');
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', handleCheckboxChange);
     });
 
-    // Delete button listeners
     const deleteButtons = itemsContainer.querySelectorAll('.btn-delete');
     deleteButtons.forEach(button => {
         button.addEventListener('click', handleDeleteClick);
@@ -161,12 +176,11 @@ function attachItemEventListeners(userId) {
  */
 async function handleCheckboxChange(event) {
     const checkbox = event.target;
-    const userId = checkbox.dataset.userId;
     const itemId = checkbox.dataset.itemId;
     const bought = checkbox.checked;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/user/${itemId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -178,7 +192,6 @@ async function handleCheckboxChange(event) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Update UI
         const itemElement = checkbox.closest('.shopping-item');
         if (bought) {
             itemElement.classList.add('bought');
@@ -188,7 +201,6 @@ async function handleCheckboxChange(event) {
 
     } catch (error) {
         console.error('Error updating item:', error);
-        // Revert checkbox state
         checkbox.checked = !bought;
         alert('Failed to update item. Please try again.');
     }
@@ -199,7 +211,6 @@ async function handleCheckboxChange(event) {
  */
 async function handleDeleteClick(event) {
     const button = event.target;
-    const userId = button.dataset.userId;
     const itemId = button.dataset.itemId;
 
     if (!confirm('Are you sure you want to delete this item?')) {
@@ -207,7 +218,7 @@ async function handleDeleteClick(event) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/user/${itemId}`, {
             method: 'DELETE'
         });
 
@@ -215,8 +226,7 @@ async function handleDeleteClick(event) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Reload the list
-        await loadUserItems(userId);
+        await loadUserItems();
 
     } catch (error) {
         console.error('Error deleting item:', error);
@@ -227,16 +237,15 @@ async function handleDeleteClick(event) {
 /**
  * Setup form submission handler
  */
-function setupFormHandler(userId) {
-    const formId = `${userId.toLowerCase()}-form`;
-    const form = document.getElementById(formId);
+function setupFormHandler() {
+    const form = document.getElementById('add-item-form');
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        const itemName = document.getElementById(`${userId.toLowerCase()}-item-name`).value.trim();
-        const quantity = parseInt(document.getElementById(`${userId.toLowerCase()}-quantity`).value);
-        const category = document.getElementById(`${userId.toLowerCase()}-category`).value.trim();
+        const itemName = document.getElementById('item-name').value.trim();
+        const quantity = parseInt(document.getElementById('quantity').value);
+        const category = document.getElementById('category').value.trim();
 
         if (!itemName || quantity < 1) {
             alert('Please enter a valid item name and quantity.');
@@ -245,7 +254,6 @@ function setupFormHandler(userId) {
 
         try {
             const payload = {
-                userId,
                 itemName,
                 quantity
             };
@@ -254,7 +262,7 @@ function setupFormHandler(userId) {
                 payload.category = category;
             }
 
-            const response = await fetch(`${API_BASE_URL}/items`, {
+            const response = await fetchWithAuth(`${API_BASE_URL}/items`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -266,12 +274,10 @@ function setupFormHandler(userId) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Clear form
             form.reset();
-            document.getElementById(`${userId.toLowerCase()}-quantity`).value = '1';
+            document.getElementById('quantity').value = '1';
 
-            // Reload the list
-            await loadUserItems(userId);
+            await loadUserItems();
 
         } catch (error) {
             console.error('Error adding item:', error);
@@ -292,23 +298,20 @@ function escapeHtml(text) {
 /**
  * Setup email button handler
  */
-function setupEmailButtonHandler(userId) {
-    const buttonId = `${userId.toLowerCase()}-email-btn`;
-    const button = document.getElementById(buttonId);
+function setupEmailButtonHandler() {
+    const button = document.getElementById('email-btn');
 
     button.addEventListener('click', async () => {
-        const itemsContainer = document.getElementById(`${userId.toLowerCase()}-items`);
+        const itemsContainer = document.getElementById('items-list');
 
-        // Remove any existing messages
         const existingMessages = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
         existingMessages.forEach(msg => msg.remove());
 
-        // Disable button
         button.disabled = true;
         button.textContent = '📧 Sending...';
 
         try {
-            const response = await fetch(`${API_BASE_URL}/email/${userId}`, {
+            const response = await fetchWithAuth(`${API_BASE_URL}/email/user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -321,13 +324,11 @@ function setupEmailButtonHandler(userId) {
 
             const data = await response.json();
 
-            // Show success message
             const successDiv = document.createElement('div');
             successDiv.className = 'success-message';
             successDiv.textContent = `✓ Email sent successfully! ${data.itemCount || 0} items included.`;
             itemsContainer.parentElement.insertBefore(successDiv, itemsContainer);
 
-            // Remove message after 5 seconds
             setTimeout(() => {
                 successDiv.remove();
             }, 5000);
@@ -335,19 +336,16 @@ function setupEmailButtonHandler(userId) {
         } catch (error) {
             console.error('Error sending email:', error);
 
-            // Show error message
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
             errorDiv.textContent = '✗ Failed to send email. Please try again.';
             itemsContainer.parentElement.insertBefore(errorDiv, itemsContainer);
 
-            // Remove message after 5 seconds
             setTimeout(() => {
                 errorDiv.remove();
             }, 5000);
 
         } finally {
-            // Re-enable button
             button.disabled = false;
             button.textContent = '📧 Email My List';
         }
@@ -357,23 +355,20 @@ function setupEmailButtonHandler(userId) {
 /**
  * Setup categorize button handler
  */
-function setupCategorizeButtonHandler(userId) {
-    const buttonId = `${userId.toLowerCase()}-categorize-btn`;
-    const button = document.getElementById(buttonId);
+function setupCategorizeButtonHandler() {
+    const button = document.getElementById('categorize-btn');
 
     button.addEventListener('click', async () => {
-        const itemsContainer = document.getElementById(`${userId.toLowerCase()}-items`);
+        const itemsContainer = document.getElementById('items-list');
 
-        // Remove any existing messages
         const existingMessages = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
         existingMessages.forEach(msg => msg.remove());
 
-        // Disable button
         button.disabled = true;
         button.textContent = '🤖 Categorizing...';
 
         try {
-            const response = await fetch(`${API_BASE_URL}/categorize/${userId}`, {
+            const response = await fetchWithAuth(`${API_BASE_URL}/categorize/user`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -386,10 +381,8 @@ function setupCategorizeButtonHandler(userId) {
 
             const data = await response.json();
 
-            // Build success message
             let message = `✓ Categorized ${data.categorizedCount || 0} items using AI!`;
 
-            // Add spelling correction info if any
             if (data.spellingCorrectedCount > 0) {
                 const corrections = data.spellingCorrections || [];
                 const correctionsList = corrections
@@ -398,16 +391,13 @@ function setupCategorizeButtonHandler(userId) {
                 message += ` Corrected spelling for: ${correctionsList}`;
             }
 
-            // Show success message
             const successDiv = document.createElement('div');
             successDiv.className = 'success-message';
             successDiv.textContent = message;
             itemsContainer.parentElement.insertBefore(successDiv, itemsContainer);
 
-            // Reload the list to show new categories
-            await loadUserItems(userId);
+            await loadUserItems();
 
-            // Remove message after 8 seconds (longer for spelling corrections)
             setTimeout(() => {
                 successDiv.remove();
             }, 8000);
@@ -415,19 +405,16 @@ function setupCategorizeButtonHandler(userId) {
         } catch (error) {
             console.error('Error categorizing items:', error);
 
-            // Show error message
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
             errorDiv.textContent = '✗ Failed to categorize items. Please try again.';
             itemsContainer.parentElement.insertBefore(errorDiv, itemsContainer);
 
-            // Remove message after 5 seconds
             setTimeout(() => {
                 errorDiv.remove();
             }, 5000);
 
         } finally {
-            // Re-enable button
             button.disabled = false;
             button.textContent = '🤖 Auto-Categorize Items';
         }

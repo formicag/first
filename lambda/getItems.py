@@ -10,6 +10,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 import logging
 from decimal import Decimal
+from cognito_helper import get_user_id_from_claims
 
 # Configure logging
 logger = logging.getLogger()
@@ -42,19 +43,20 @@ def lambda_handler(event, context):
         dict: Response with status code and list of items
     """
     try:
-        # Extract userId from path parameters
-        path_params = event.get('pathParameters', {})
+        # Extract userId from Cognito authorizer claims
+        user_id = get_user_id_from_claims(event)
         query_params = event.get('queryStringParameters', {}) or {}
 
-        # Get userId from path
-        user_id = path_params.get('userId')
-
         if not user_id:
-            logger.error("Missing required field: userId")
+            logger.error("Unable to extract userId from token claims")
             return {
-                'statusCode': 400,
+                'statusCode': 401,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
                 'body': json.dumps({
-                    'error': 'Missing required field: userId'
+                    'error': 'Unauthorized: Invalid token'
                 })
             }
 
