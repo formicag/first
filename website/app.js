@@ -386,19 +386,31 @@ function setupCategorizeButtonHandler(userId) {
 
             const data = await response.json();
 
+            // Build success message
+            let message = `✓ Categorized ${data.categorizedCount || 0} items using AI!`;
+
+            // Add spelling correction info if any
+            if (data.spellingCorrectedCount > 0) {
+                const corrections = data.spellingCorrections || [];
+                const correctionsList = corrections
+                    .map(c => `'${c.original}' → '${c.corrected}'`)
+                    .join(', ');
+                message += ` Corrected spelling for: ${correctionsList}`;
+            }
+
             // Show success message
             const successDiv = document.createElement('div');
             successDiv.className = 'success-message';
-            successDiv.textContent = `✓ Categorized ${data.categorizedCount || 0} items using AI!`;
+            successDiv.textContent = message;
             itemsContainer.parentElement.insertBefore(successDiv, itemsContainer);
 
             // Reload the list to show new categories
             await loadUserItems(userId);
 
-            // Remove message after 5 seconds
+            // Remove message after 8 seconds (longer for spelling corrections)
             setTimeout(() => {
                 successDiv.remove();
-            }, 5000);
+            }, 8000);
 
         } catch (error) {
             console.error('Error categorizing items:', error);

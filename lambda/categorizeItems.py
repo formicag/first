@@ -92,12 +92,29 @@ def lambda_handler(event, context):
 
         # Categorize each item using Bedrock
         categorized_count = 0
+        spelling_corrected_count = 0
+        spelling_corrections = []
         errors = []
 
         for item in uncategorized_items:
             try:
                 item_name = item.get('itemName', 'Unknown')
-                category = categorize_item_with_bedrock(item_name)
+                result = categorize_item_with_bedrock(item_name)
+
+                # Prepare update expression
+                update_expression = 'SET category = :category'
+                expression_values = {':category': result['category']}
+
+                # Check if spelling was corrected
+                if result['correctedName'] != item_name:
+                    update_expression += ', itemName = :itemName'
+                    expression_values[':itemName'] = result['correctedName']
+                    spelling_corrected_count += 1
+                    spelling_corrections.append({
+                        'original': item_name,
+                        'corrected': result['correctedName']
+                    })
+                    logger.info(f"Corrected spelling: '{item_name}' → '{result['correctedName']}'")
 
                 # Update item in DynamoDB
                 table.update_item(
@@ -105,13 +122,11 @@ def lambda_handler(event, context):
                         'userId': item['userId'],
                         'itemId': item['itemId']
                     },
-                    UpdateExpression='SET category = :category',
-                    ExpressionAttributeValues={
-                        ':category': category
-                    }
+                    UpdateExpression=update_expression,
+                    ExpressionAttributeValues=expression_values
                 )
 
-                logger.info(f"Categorized '{item_name}' as '{category}'")
+                logger.info(f"Categorized '{result['correctedName']}' as '{result['category']}'")
                 categorized_count += 1
 
             except Exception as e:
@@ -119,7 +134,7 @@ def lambda_handler(event, context):
                 logger.error(error_msg)
                 errors.append(error_msg)
 
-        logger.info(f"Successfully categorized {categorized_count} items")
+        logger.info(f"Successfully categorized {categorized_count} items, corrected {spelling_corrected_count} spellings")
 
         return {
             'statusCode': 200,
@@ -131,6 +146,8 @@ def lambda_handler(event, context):
                 'message': f'Categorization complete',
                 'categorizedCount': categorized_count,
                 'totalFound': len(uncategorized_items),
+                'spellingCorrectedCount': spelling_corrected_count,
+                'spellingCorrections': spelling_corrections,
                 'errors': errors if errors else None
             })
         }
@@ -190,26 +207,28 @@ def get_uncategorized_items(user_id):
 
 def categorize_item_with_bedrock(item_name):
     """
-    Use Amazon Bedrock to categorize a grocery item.
+    Use Amazon Bedrock to categorize a grocery item and correct spelling.
 
     Args:
         item_name: Name of the grocery item
 
     Returns:
-        str: Category name
+        dict: Dictionary with 'correctedName' and 'category' keys
     """
     # Create prompt for Bedrock
     categories_str = ", ".join(CATEGORIES)
-    prompt = f"""Categorize this grocery item into ONE of these categories: {categories_str}.
+    prompt = f"""You are categorizing grocery items. For this item: '{item_name}'
 
-Item: {item_name}
+Task 1: Correct any spelling mistakes in the item name. If spelling is correct, return the original name.
+Task 2: Categorize into ONE of these categories: {categories_str}, Unknown Category.
 
-Return ONLY the category name, nothing else. If unsure, return 'Unknown Category'."""
+Return ONLY valid JSON in this exact format:
+{{"correctedName": "corrected item name", "category": "category name"}}"""
 
     # Prepare request for Claude
     request_body = {
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 50,
+        "max_tokens": 100,
         "temperature": 0,
         "messages": [
             {
@@ -230,15 +249,32 @@ Return ONLY the category name, nothing else. If unsure, return 'Unknown Category
 
         # Parse response for Claude format
         response_body = json.loads(response['body'].read())
-        category = response_body['content'][0]['text'].strip()
+        response_text = response_body['content'][0]['text'].strip()
+
+        # Parse JSON response
+        try:
+            result = json.loads(response_text)
+            corrected_name = result.get('correctedName', item_name)
+            category = result.get('category', 'Unknown Category')
+        except json.JSONDecodeError as je:
+            logger.error(f"Invalid JSON response from Bedrock for item '{item_name}': {response_text}")
+            # Fallback to original name and Unknown Category
+            corrected_name = item_name
+            category = 'Unknown Category'
 
         # Validate category is in our list
         if category not in CATEGORIES and category != 'Unknown Category':
             logger.warning(f"Bedrock returned invalid category '{category}' for item '{item_name}'. Using 'Unknown Category'.")
             category = 'Unknown Category'
 
-        return category
+        return {
+            'correctedName': corrected_name,
+            'category': category
+        }
 
     except Exception as e:
         logger.error(f"Error calling Bedrock for item '{item_name}': {str(e)}")
-        return 'Unknown Category'
+        return {
+            'correctedName': item_name,
+            'category': 'Unknown Category'
+        }
