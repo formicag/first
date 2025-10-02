@@ -31,11 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadUserItems() {
     const itemsContainer = document.getElementById('items-list');
     const countElement = document.getElementById('item-count');
+    const userId = getUserId();
 
     try {
         itemsContainer.innerHTML = '<div class="loading">Loading items...</div>';
 
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/user?bought=all`);
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}?bought=all`);
 
         if (!response.ok) {
             if (response.status === 401) {
@@ -178,9 +179,10 @@ async function handleCheckboxChange(event) {
     const checkbox = event.target;
     const itemId = checkbox.dataset.itemId;
     const bought = checkbox.checked;
+    const userId = getUserId();
 
     try {
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/user/${itemId}`, {
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -212,13 +214,14 @@ async function handleCheckboxChange(event) {
 async function handleDeleteClick(event) {
     const button = event.target;
     const itemId = button.dataset.itemId;
+    const userId = getUserId();
 
     if (!confirm('Are you sure you want to delete this item?')) {
         return;
     }
 
     try {
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/user/${itemId}`, {
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
             method: 'DELETE'
         });
 
@@ -303,6 +306,7 @@ function setupEmailButtonHandler() {
 
     button.addEventListener('click', async () => {
         const itemsContainer = document.getElementById('items-list');
+        const userId = getUserId();
 
         const existingMessages = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
         existingMessages.forEach(msg => msg.remove());
@@ -311,7 +315,7 @@ function setupEmailButtonHandler() {
         button.textContent = '📧 Sending...';
 
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/email/user`, {
+            const response = await fetchWithAuth(`${API_BASE_URL}/email/${userId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -360,6 +364,7 @@ function setupCategorizeButtonHandler() {
 
     button.addEventListener('click', async () => {
         const itemsContainer = document.getElementById('items-list');
+        const userId = getUserId();
 
         const existingMessages = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
         existingMessages.forEach(msg => msg.remove());
@@ -368,7 +373,7 @@ function setupCategorizeButtonHandler() {
         button.textContent = '🤖 Categorizing...';
 
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/categorize/user`, {
+            const response = await fetchWithAuth(`${API_BASE_URL}/categorize/${userId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
