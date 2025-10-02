@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup email button handlers
     setupEmailButtonHandler(USERS.GIANLUCA);
     setupEmailButtonHandler(USERS.NICOLE);
+
+    // Setup categorize button handlers
+    setupCategorizeButtonHandler(USERS.GIANLUCA);
+    setupCategorizeButtonHandler(USERS.NICOLE);
 });
 
 /**
@@ -308,6 +312,74 @@ function setupEmailButtonHandler(userId) {
             // Re-enable button
             button.disabled = false;
             button.textContent = '📧 Email My List';
+        }
+    });
+}
+
+/**
+ * Setup categorize button handler
+ */
+function setupCategorizeButtonHandler(userId) {
+    const buttonId = `${userId.toLowerCase()}-categorize-btn`;
+    const button = document.getElementById(buttonId);
+
+    button.addEventListener('click', async () => {
+        const itemsContainer = document.getElementById(`${userId.toLowerCase()}-items`);
+
+        // Remove any existing messages
+        const existingMessages = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
+        existingMessages.forEach(msg => msg.remove());
+
+        // Disable button
+        button.disabled = true;
+        button.textContent = '🤖 Categorizing...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/categorize/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Show success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = `✓ Categorized ${data.categorizedCount || 0} items using AI!`;
+            itemsContainer.parentElement.insertBefore(successDiv, itemsContainer);
+
+            // Reload the list to show new categories
+            await loadUserItems(userId);
+
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                successDiv.remove();
+            }, 5000);
+
+        } catch (error) {
+            console.error('Error categorizing items:', error);
+
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = '✗ Failed to categorize items. Please try again.';
+            itemsContainer.parentElement.insertBefore(errorDiv, itemsContainer);
+
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+
+        } finally {
+            // Re-enable button
+            button.disabled = false;
+            button.textContent = '🤖 Auto-Categorize Items';
         }
     });
 }

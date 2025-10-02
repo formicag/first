@@ -165,6 +165,35 @@ header h1 {
     transform: none;
 }
 
+.btn-categorize {
+    width: 100%;
+    padding: 12px;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.1s;
+    margin-bottom: 25px;
+}
+
+.btn-categorize:hover {
+    background: #7c3aed;
+    transform: translateY(-2px);
+}
+
+.btn-categorize:active {
+    transform: translateY(0);
+}
+
+.btn-categorize:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .success-message {
     background: #10b981;
     color: white;
