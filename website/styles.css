@@ -136,6 +136,56 @@ header h1 {
     transform: translateY(0);
 }
 
+.btn-email {
+    width: 100%;
+    padding: 12px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.1s;
+    margin-bottom: 25px;
+}
+
+.btn-email:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+.btn-email:active {
+    transform: translateY(0);
+}
+
+.btn-email:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.success-message {
+    background: #10b981;
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    text-align: center;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Items List */
 .items-list {
     min-height: 200px;

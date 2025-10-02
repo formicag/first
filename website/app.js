@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup form handlers
     setupFormHandler(USERS.GIANLUCA);
     setupFormHandler(USERS.NICOLE);
+
+    // Setup email button handlers
+    setupEmailButtonHandler(USERS.GIANLUCA);
+    setupEmailButtonHandler(USERS.NICOLE);
 });
 
 /**
@@ -241,4 +245,69 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/**
+ * Setup email button handler
+ */
+function setupEmailButtonHandler(userId) {
+    const buttonId = `${userId.toLowerCase()}-email-btn`;
+    const button = document.getElementById(buttonId);
+
+    button.addEventListener('click', async () => {
+        const itemsContainer = document.getElementById(`${userId.toLowerCase()}-items`);
+
+        // Remove any existing messages
+        const existingMessages = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
+        existingMessages.forEach(msg => msg.remove());
+
+        // Disable button
+        button.disabled = true;
+        button.textContent = '📧 Sending...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/email/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Show success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = `✓ Email sent successfully! ${data.itemCount || 0} items included.`;
+            itemsContainer.parentElement.insertBefore(successDiv, itemsContainer);
+
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                successDiv.remove();
+            }, 5000);
+
+        } catch (error) {
+            console.error('Error sending email:', error);
+
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = '✗ Failed to send email. Please try again.';
+            itemsContainer.parentElement.insertBefore(errorDiv, itemsContainer);
+
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+
+        } finally {
+            // Re-enable button
+            button.disabled = false;
+            button.textContent = '📧 Email My List';
+        }
+    });
 }
