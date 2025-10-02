@@ -52,7 +52,7 @@ async function loadUserItems(userId) {
         if (items.length === 0) {
             itemsContainer.innerHTML = '<div class="empty-state">No items yet. Add your first item!</div>';
         } else {
-            itemsContainer.innerHTML = items.map(item => createItemHTML(item, userId)).join('');
+            itemsContainer.innerHTML = renderGroupedItems(items, userId);
 
             // Attach event listeners
             attachItemEventListeners(userId);
@@ -65,12 +65,51 @@ async function loadUserItems(userId) {
 }
 
 /**
+ * Group items by category and render them
+ */
+function renderGroupedItems(items, userId) {
+    // Group items by category
+    const grouped = {};
+
+    items.forEach(item => {
+        const category = item.category || 'Uncategorized';
+        if (!grouped[category]) {
+            grouped[category] = [];
+        }
+        grouped[category].push(item);
+    });
+
+    // Sort categories alphabetically, with Uncategorized last
+    const sortedCategories = Object.keys(grouped).sort((a, b) => {
+        if (a === 'Uncategorized') return 1;
+        if (b === 'Uncategorized') return -1;
+        return a.localeCompare(b);
+    });
+
+    // Build HTML for each category
+    let html = '';
+    sortedCategories.forEach(category => {
+        // Sort items within category: unbought first, then bought
+        const categoryItems = grouped[category].sort((a, b) => {
+            if (a.bought === b.bought) return 0;
+            return a.bought ? 1 : -1;
+        });
+
+        html += `<div class="category-group">`;
+        html += `<div class="category-header">${escapeHtml(category)}</div>`;
+        html += categoryItems.map(item => createItemHTML(item, userId)).join('');
+        html += `</div>`;
+    });
+
+    return html;
+}
+
+/**
  * Create HTML for a shopping item
  */
 function createItemHTML(item, userId) {
     const boughtClass = item.bought ? 'bought' : '';
     const checkedAttr = item.bought ? 'checked' : '';
-    const category = item.category ? `<span class="item-category">${item.category}</span>` : '';
 
     return `
         <div class="shopping-item ${boughtClass}" data-item-id="${item.itemId}">
@@ -85,7 +124,6 @@ function createItemHTML(item, userId) {
                 <div class="item-name">${escapeHtml(item.itemName)}</div>
                 <div class="item-meta">
                     <span class="item-quantity">Qty: ${item.quantity}</span>
-                    ${category}
                 </div>
             </div>
             <button
