@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Frontend Stack - S3 bucket and CloudFront distribution for Shopping List application'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Name of the project
+    Default: ShoppingList
+
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: Dev
+
+  DomainName:
+    Type: String
+    Description: Custom domain name for the application (e.g., shoppinglist.example.com)
+    Default: ''
+
+  AcmCertificateArn:
+    Type: String
+    Description: ACM certificate ARN for CloudFront (must be in us-east-1)
+    Default: ''
+
+Conditions:
+  HasCustomDomain: !Not [!Equals [!Ref DomainName, '']]
+  HasCertificate: !Not [!Equals [!Ref AcmCertificateArn, '']]
+
+Resources:
+  # S3 Bucket for static website hosting
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !If
+        - HasCustomDomain
+        - !Ref DomainName
+        - !Sub '${ProjectName}-${Environment}-website-${AWS::AccountId}'
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # S3 Bucket Policy for public read access
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Sub '${WebsiteBucket.Arn}/*'
+
+  # CloudFront Origin Access Identity
+  CloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'OAI for ${ProjectName} ${Environment}'
+
+  # CloudFront Distribution
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub '${ProjectName} ${Environment} Distribution'
+        DefaultRootObject: index.html
+        Aliases: !If
+          - HasCustomDomain
+          - [!Ref DomainName]
+          - !Ref AWS::NoValue
+        Origins:
+          - Id: S3Origin
+            DomainName: !Sub '${WebsiteBucket}.s3-website-${AWS::Region}.amazonaws.com'
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: http-only
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          Compress: true
+          DefaultTTL: 86400
+          MaxTTL: 31536000
+          MinTTL: 0
+        ViewerCertificate: !If
+          - HasCertificate
+          - AcmCertificateArn: !Ref AcmCertificateArn
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
+        PriceClass: PriceClass_100
+        HttpVersion: http2
+        IPV6Enabled: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  BucketName:
+    Description: Name of the S3 bucket
+    Value: !Ref WebsiteBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketName'
+
+  BucketWebsiteURL:
+    Description: S3 bucket website URL
+    Value: !GetAtt WebsiteBucket.WebsiteURL
+    Export:
+      Name: !Sub '${AWS::StackName}-WebsiteURL'
+
+  DistributionId:
+    Description: CloudFront distribution ID
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub '${AWS::StackName}-DistributionId'
+
+  DistributionDomainName:
+    Description: CloudFront distribution domain name
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub '${AWS::StackName}-DistributionDomain'
+
+  WebsiteURL:
+    Description: Website URL
+    Value: !If
+      - HasCustomDomain
+      - !Sub 'https://${DomainName}'
+      - !Sub 'https://${CloudFrontDistribution.DomainName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-URL'

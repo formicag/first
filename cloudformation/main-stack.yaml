@@ -1,0 +1,279 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Main Stack - Shopping List Application Infrastructure with Nested Stacks'
+
+Parameters:
+  # Project Configuration
+  ProjectName:
+    Type: String
+    Description: Name of the project
+    Default: ShoppingList
+
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - Staging
+      - Prod
+
+  # S3 Bucket for nested templates
+  TemplatesBucketName:
+    Type: String
+    Description: S3 bucket name where nested stack templates are stored
+
+  # Email Configuration
+  NotificationEmail:
+    Type: String
+    Description: Email address for notifications and alerts
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+  # Domain Configuration
+  DomainName:
+    Type: String
+    Description: Custom domain name (leave empty if not using custom domain)
+    Default: ''
+
+  AcmCertificateArn:
+    Type: String
+    Description: ACM certificate ARN (must be in us-east-1 for CloudFront)
+    Default: ''
+
+  # API Configuration
+  ApiStageName:
+    Type: String
+    Description: API Gateway stage name
+    Default: dev
+
+  # DynamoDB Configuration
+  DynamoDBBillingMode:
+    Type: String
+    Description: DynamoDB billing mode
+    Default: PAY_PER_REQUEST
+    AllowedValues:
+      - PAY_PER_REQUEST
+      - PROVISIONED
+
+  # Lambda Configuration
+  LambdaTimeout:
+    Type: Number
+    Description: Lambda function timeout in seconds
+    Default: 60
+    MinValue: 3
+    MaxValue: 900
+
+  LambdaMemorySize:
+    Type: Number
+    Description: Lambda function memory size in MB
+    Default: 256
+    AllowedValues: [128, 256, 512, 1024, 2048, 3008]
+
+  # Billing Alert Thresholds
+  BillingThreshold1:
+    Type: Number
+    Description: First billing threshold in USD
+    Default: 10
+
+  BillingThreshold2:
+    Type: Number
+    Description: Second billing threshold in USD
+    Default: 20
+
+  BillingThreshold3:
+    Type: Number
+    Description: Third billing threshold in USD
+    Default: 30
+
+  BillingThreshold4:
+    Type: Number
+    Description: Fourth billing threshold in USD
+    Default: 50
+
+  BillingThreshold5:
+    Type: Number
+    Description: Fifth billing threshold in USD
+    Default: 100
+
+Resources:
+  # Storage Stack (DynamoDB)
+  StorageStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${TemplatesBucketName}.s3.${AWS::Region}.amazonaws.com/storage-stack.yaml'
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Environment: !Ref Environment
+        BillingMode: !Ref DynamoDBBillingMode
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Auth Stack (Cognito)
+  AuthStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${TemplatesBucketName}.s3.${AWS::Region}.amazonaws.com/auth-stack.yaml'
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Environment: !Ref Environment
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Email Stack (SES)
+  EmailStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${TemplatesBucketName}.s3.${AWS::Region}.amazonaws.com/email-stack.yaml'
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Environment: !Ref Environment
+        NotificationEmail: !Ref NotificationEmail
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Monitoring Stack (CloudWatch Billing Alarms)
+  MonitoringStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${TemplatesBucketName}.s3.${AWS::Region}.amazonaws.com/monitoring-stack.yaml'
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Environment: !Ref Environment
+        NotificationEmail: !Ref NotificationEmail
+        BillingThreshold1: !Ref BillingThreshold1
+        BillingThreshold2: !Ref BillingThreshold2
+        BillingThreshold3: !Ref BillingThreshold3
+        BillingThreshold4: !Ref BillingThreshold4
+        BillingThreshold5: !Ref BillingThreshold5
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Compute Stack (Lambda Functions)
+  ComputeStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - StorageStack
+    Properties:
+      TemplateURL: !Sub 'https://${TemplatesBucketName}.s3.${AWS::Region}.amazonaws.com/compute-stack.yaml'
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Environment: !Ref Environment
+        DynamoDBTableName: !GetAtt StorageStack.Outputs.TableName
+        DynamoDBTableArn: !GetAtt StorageStack.Outputs.TableArn
+        NotificationEmail: !Ref NotificationEmail
+        LambdaTimeout: !Ref LambdaTimeout
+        LambdaMemorySize: !Ref LambdaMemorySize
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # API Stack (API Gateway)
+  ApiStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn:
+      - AuthStack
+      - ComputeStack
+    Properties:
+      TemplateURL: !Sub 'https://${TemplatesBucketName}.s3.${AWS::Region}.amazonaws.com/api-stack.yaml'
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Environment: !Ref Environment
+        StageName: !Ref ApiStageName
+        UserPoolArn: !GetAtt AuthStack.Outputs.UserPoolArn
+        CreateItemFunctionArn: !GetAtt ComputeStack.Outputs.CreateItemFunctionArn
+        GetItemsFunctionArn: !GetAtt ComputeStack.Outputs.GetItemsFunctionArn
+        UpdateItemFunctionArn: !GetAtt ComputeStack.Outputs.UpdateItemFunctionArn
+        DeleteItemFunctionArn: !GetAtt ComputeStack.Outputs.DeleteItemFunctionArn
+        EmailListFunctionArn: !GetAtt ComputeStack.Outputs.EmailListFunctionArn
+        CategorizeItemsFunctionArn: !GetAtt ComputeStack.Outputs.CategorizeItemsFunctionArn
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Frontend Stack (S3 + CloudFront)
+  FrontendStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://${TemplatesBucketName}.s3.${AWS::Region}.amazonaws.com/frontend-stack.yaml'
+      Parameters:
+        ProjectName: !Ref ProjectName
+        Environment: !Ref Environment
+        DomainName: !Ref DomainName
+        AcmCertificateArn: !Ref AcmCertificateArn
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  # DynamoDB Outputs
+  DynamoDBTableName:
+    Description: Name of the DynamoDB table
+    Value: !GetAtt StorageStack.Outputs.TableName
+
+  # Cognito Outputs
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !GetAtt AuthStack.Outputs.UserPoolId
+
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !GetAtt AuthStack.Outputs.UserPoolClientId
+
+  # API Gateway Outputs
+  ApiEndpoint:
+    Description: API Gateway endpoint URL
+    Value: !GetAtt ApiStack.Outputs.ApiEndpoint
+
+  # Frontend Outputs
+  WebsiteURL:
+    Description: Website URL
+    Value: !GetAtt FrontendStack.Outputs.WebsiteURL
+
+  CloudFrontDistributionDomain:
+    Description: CloudFront distribution domain name
+    Value: !GetAtt FrontendStack.Outputs.DistributionDomainName
+
+  S3BucketName:
+    Description: S3 bucket name for website files
+    Value: !GetAtt FrontendStack.Outputs.BucketName
+
+  # Important Configuration Values
+  ConfigurationSummary:
+    Description: Important configuration values for frontend
+    Value: !Sub |
+      Cognito User Pool ID: ${AuthStack.Outputs.UserPoolId}
+      Cognito Client ID: ${AuthStack.Outputs.UserPoolClientId}
+      Cognito Region: ${AWS::Region}
+      API Base URL: ${ApiStack.Outputs.ApiEndpoint}
+      Website URL: ${FrontendStack.Outputs.WebsiteURL}

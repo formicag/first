@@ -1,0 +1,315 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'API Stack - API Gateway REST API with Cognito authorizer for Shopping List application'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Name of the project
+    Default: ShoppingList
+
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: Dev
+
+  StageName:
+    Type: String
+    Description: API Gateway stage name
+    Default: dev
+
+  UserPoolArn:
+    Type: String
+    Description: ARN of the Cognito User Pool
+
+  CreateItemFunctionArn:
+    Type: String
+    Description: ARN of CreateItem Lambda function
+
+  GetItemsFunctionArn:
+    Type: String
+    Description: ARN of GetItems Lambda function
+
+  UpdateItemFunctionArn:
+    Type: String
+    Description: ARN of UpdateItem Lambda function
+
+  DeleteItemFunctionArn:
+    Type: String
+    Description: ARN of DeleteItem Lambda function
+
+  EmailListFunctionArn:
+    Type: String
+    Description: ARN of EmailList Lambda function
+
+  CategorizeItemsFunctionArn:
+    Type: String
+    Description: ARN of CategorizeItems Lambda function
+
+Resources:
+  # API Gateway REST API
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub '${ProjectName}-${Environment}-API'
+      Description: REST API for Shopping List application
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Cognito Authorizer
+  CognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: CognitoAuthorizer
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      RestApiId: !Ref RestApi
+      ProviderARNs:
+        - !Ref UserPoolArn
+
+  # Resource: /items
+  ItemsResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: items
+
+  # Resource: /items/{userId}
+  ItemsUserIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref ItemsResource
+      PathPart: '{userId}'
+
+  # Resource: /items/{userId}/{itemId}
+  ItemsUserIdItemIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref ItemsUserIdResource
+      PathPart: '{itemId}'
+
+  # Resource: /email
+  EmailResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: email
+
+  # Resource: /email/{userId}
+  EmailUserIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref EmailResource
+      PathPart: '{userId}'
+
+  # Resource: /categorize
+  CategorizeResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: categorize
+
+  # Resource: /categorize/{userId}
+  CategorizeUserIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref CategorizeResource
+      PathPart: '{userId}'
+
+  # Method: POST /items
+  CreateItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ItemsResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CreateItemFunctionArn}/invocations'
+
+  # Method: GET /items/{userId}
+  GetItemsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ItemsUserIdResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      RequestParameters:
+        method.request.querystring.bought: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetItemsFunctionArn}/invocations'
+
+  # Method: PUT /items/{userId}/{itemId}
+  UpdateItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ItemsUserIdItemIdResource
+      HttpMethod: PUT
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UpdateItemFunctionArn}/invocations'
+
+  # Method: DELETE /items/{userId}/{itemId}
+  DeleteItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ItemsUserIdItemIdResource
+      HttpMethod: DELETE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DeleteItemFunctionArn}/invocations'
+
+  # Method: POST /email/{userId}
+  EmailListMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref EmailUserIdResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${EmailListFunctionArn}/invocations'
+
+  # Method: POST /categorize/{userId}
+  CategorizeItemsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref CategorizeUserIdResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CategorizeItemsFunctionArn}/invocations'
+
+  # Lambda Permissions
+  CreateItemPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CreateItemFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
+  GetItemsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetItemsFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
+  UpdateItemPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref UpdateItemFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
+  DeleteItemPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DeleteItemFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
+  EmailListPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref EmailListFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
+  CategorizeItemsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref CategorizeItemsFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
+  # API Gateway Deployment
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - CreateItemMethod
+      - GetItemsMethod
+      - UpdateItemMethod
+      - DeleteItemMethod
+      - EmailListMethod
+      - CategorizeItemsMethod
+    Properties:
+      RestApiId: !Ref RestApi
+      Description: !Sub 'Deployment for ${Environment} environment'
+
+  # API Gateway Stage
+  ApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: !Ref StageName
+      Description: !Sub '${Environment} stage'
+      RestApiId: !Ref RestApi
+      DeploymentId: !Ref ApiDeployment
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  ApiId:
+    Description: ID of the API Gateway REST API
+    Value: !Ref RestApi
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiId'
+
+  ApiEndpoint:
+    Description: Endpoint URL of the API Gateway
+    Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiEndpoint'
+
+  CognitoAuthorizerId:
+    Description: ID of the Cognito authorizer
+    Value: !Ref CognitoAuthorizer
+    Export:
+      Name: !Sub '${AWS::StackName}-AuthorizerId'

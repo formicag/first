@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Email Stack - SES configuration for Shopping List application'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Name of the project
+    Default: ShoppingList
+
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: Dev
+
+  NotificationEmail:
+    Type: String
+    Description: Email address for notifications and shopping list emails
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+Resources:
+  # SES Email Identity
+  # Note: This creates an email identity that needs to be verified
+  # For production, you would use a domain identity instead
+  EmailIdentity:
+    Type: AWS::SES::EmailIdentity
+    Properties:
+      EmailIdentity: !Ref NotificationEmail
+
+Outputs:
+  EmailIdentity:
+    Description: SES Email Identity
+    Value: !Ref EmailIdentity
+    Export:
+      Name: !Sub '${AWS::StackName}-EmailIdentity'
+
+  NotificationEmail:
+    Description: Email address for notifications
+    Value: !Ref NotificationEmail
+    Export:
+      Name: !Sub '${AWS::StackName}-NotificationEmail'

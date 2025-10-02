@@ -1,0 +1,173 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Monitoring Stack - CloudWatch billing alarms and SNS topic for Shopping List application'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Name of the project
+    Default: ShoppingList
+
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: Dev
+
+  NotificationEmail:
+    Type: String
+    Description: Email address for billing alerts
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+  BillingThreshold1:
+    Type: Number
+    Description: First billing threshold in USD
+    Default: 10
+
+  BillingThreshold2:
+    Type: Number
+    Description: Second billing threshold in USD
+    Default: 20
+
+  BillingThreshold3:
+    Type: Number
+    Description: Third billing threshold in USD
+    Default: 30
+
+  BillingThreshold4:
+    Type: Number
+    Description: Fourth billing threshold in USD
+    Default: 50
+
+  BillingThreshold5:
+    Type: Number
+    Description: Fifth billing threshold in USD
+    Default: 100
+
+Resources:
+  # SNS Topic for billing alerts
+  BillingAlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${ProjectName}-${Environment}-BillingAlerts'
+      DisplayName: !Sub '${ProjectName} Billing Alerts'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # SNS Subscription for email notifications
+  BillingAlertSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref BillingAlertTopic
+      Endpoint: !Ref NotificationEmail
+
+  # Billing Alarm 1
+  BillingAlarm1:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-Billing-${BillingThreshold1}USD'
+      AlarmDescription: !Sub 'Billing alert when charges exceed ${BillingThreshold1} USD'
+      MetricName: EstimatedCharges
+      Namespace: AWS/Billing
+      Statistic: Maximum
+      Period: 21600
+      EvaluationPeriods: 1
+      Threshold: !Ref BillingThreshold1
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      AlarmActions:
+        - !Ref BillingAlertTopic
+      TreatMissingData: notBreaching
+
+  # Billing Alarm 2
+  BillingAlarm2:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-Billing-${BillingThreshold2}USD'
+      AlarmDescription: !Sub 'Billing alert when charges exceed ${BillingThreshold2} USD'
+      MetricName: EstimatedCharges
+      Namespace: AWS/Billing
+      Statistic: Maximum
+      Period: 21600
+      EvaluationPeriods: 1
+      Threshold: !Ref BillingThreshold2
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      AlarmActions:
+        - !Ref BillingAlertTopic
+      TreatMissingData: notBreaching
+
+  # Billing Alarm 3
+  BillingAlarm3:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-Billing-${BillingThreshold3}USD'
+      AlarmDescription: !Sub 'Billing alert when charges exceed ${BillingThreshold3} USD'
+      MetricName: EstimatedCharges
+      Namespace: AWS/Billing
+      Statistic: Maximum
+      Period: 21600
+      EvaluationPeriods: 1
+      Threshold: !Ref BillingThreshold3
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      AlarmActions:
+        - !Ref BillingAlertTopic
+      TreatMissingData: notBreaching
+
+  # Billing Alarm 4
+  BillingAlarm4:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-Billing-${BillingThreshold4}USD'
+      AlarmDescription: !Sub 'Billing alert when charges exceed ${BillingThreshold4} USD'
+      MetricName: EstimatedCharges
+      Namespace: AWS/Billing
+      Statistic: Maximum
+      Period: 21600
+      EvaluationPeriods: 1
+      Threshold: !Ref BillingThreshold4
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      AlarmActions:
+        - !Ref BillingAlertTopic
+      TreatMissingData: notBreaching
+
+  # Billing Alarm 5
+  BillingAlarm5:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${ProjectName}-${Environment}-Billing-${BillingThreshold5}USD'
+      AlarmDescription: !Sub 'Billing alert when charges exceed ${BillingThreshold5} USD'
+      MetricName: EstimatedCharges
+      Namespace: AWS/Billing
+      Statistic: Maximum
+      Period: 21600
+      EvaluationPeriods: 1
+      Threshold: !Ref BillingThreshold5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: Currency
+          Value: USD
+      AlarmActions:
+        - !Ref BillingAlertTopic
+      TreatMissingData: notBreaching
+
+Outputs:
+  BillingAlertTopicArn:
+    Description: ARN of the SNS topic for billing alerts
+    Value: !Ref BillingAlertTopic
+    Export:
+      Name: !Sub '${AWS::StackName}-TopicArn'

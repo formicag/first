@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Auth Stack - Cognito User Pool and User Pool Client for Shopping List application'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Name of the project
+    Default: ShoppingList
+
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: Dev
+
+  MinPasswordLength:
+    Type: Number
+    Description: Minimum password length
+    Default: 8
+    MinValue: 6
+    MaxValue: 99
+
+Resources:
+  # Cognito User Pool
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${ProjectName}-${Environment}-UserPool'
+      # Allow users to sign in with email
+      UsernameAttributes:
+        - email
+      # Auto-verify email addresses
+      AutoVerifiedAttributes:
+        - email
+      # Password policy
+      Policies:
+        PasswordPolicy:
+          MinimumLength: !Ref MinPasswordLength
+          RequireUppercase: false
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          TemporaryPasswordValidityDays: 7
+      # Custom attributes
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: false
+        - Name: displayName
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+      # Email configuration
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      # Account recovery
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      # Admin create user configuration
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      # User pool tags
+      UserPoolTags:
+        Project: !Ref ProjectName
+        Environment: !Ref Environment
+        ManagedBy: CloudFormation
+
+  # Cognito User Pool Client for web application
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${ProjectName}-${Environment}-WebClient'
+      UserPoolId: !Ref UserPool
+      # No client secret for public web apps
+      GenerateSecret: false
+      # Explicit auth flows
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      # Token validity
+      RefreshTokenValidity: 30
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      TokenValidityUnits:
+        RefreshToken: days
+        AccessToken: hours
+        IdToken: hours
+      # Prevent user existence errors
+      PreventUserExistenceErrors: ENABLED
+
+Outputs:
+  UserPoolId:
+    Description: ID of the Cognito User Pool
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolId'
+
+  UserPoolArn:
+    Description: ARN of the Cognito User Pool
+    Value: !GetAtt UserPool.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolArn'
+
+  UserPoolClientId:
+    Description: ID of the Cognito User Pool Client
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolClientId'
+
+  UserPoolRegion:
+    Description: Region of the Cognito User Pool
+    Value: !Ref AWS::Region
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolRegion'

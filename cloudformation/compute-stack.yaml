@@ -1,0 +1,303 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Compute Stack - Lambda functions for Shopping List application'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Name of the project
+    Default: ShoppingList
+
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: Dev
+
+  DynamoDBTableName:
+    Type: String
+    Description: Name of the DynamoDB table
+
+  DynamoDBTableArn:
+    Type: String
+    Description: ARN of the DynamoDB table
+
+  NotificationEmail:
+    Type: String
+    Description: Email address for shopping list notifications
+
+  LambdaTimeout:
+    Type: Number
+    Description: Lambda function timeout in seconds
+    Default: 60
+    MinValue: 3
+    MaxValue: 900
+
+  LambdaMemorySize:
+    Type: Number
+    Description: Lambda function memory size in MB
+    Default: 256
+    AllowedValues: [128, 256, 512, 1024, 2048, 3008]
+
+Resources:
+  # IAM Role for Lambda functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-${Environment}-LambdaRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        # DynamoDB access policy
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource:
+                  - !Ref DynamoDBTableArn
+                  - !Sub '${DynamoDBTableArn}/*'
+        # SES access policy
+        - PolicyName: SESAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                Resource: '*'
+        # Bedrock access policy
+        - PolicyName: BedrockAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                Resource: !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/*'
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Lambda Function: Create Item
+  CreateItemFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-CreateItem'
+      Description: Create a new shopping list item
+      Runtime: python3.11
+      Handler: createItem.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTableName
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Lambda Function: Get Items
+  GetItemsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-GetItems'
+      Description: Retrieve shopping list items for a user
+      Runtime: python3.11
+      Handler: getItems.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTableName
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Lambda Function: Update Item
+  UpdateItemFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-UpdateItem'
+      Description: Update a shopping list item
+      Runtime: python3.11
+      Handler: updateItem.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTableName
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Lambda Function: Delete Item
+  DeleteItemFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-DeleteItem'
+      Description: Delete a shopping list item
+      Runtime: python3.11
+      Handler: deleteItem.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTableName
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Lambda Function: Email List
+  EmailListFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-EmailList'
+      Description: Send shopping list via email
+      Runtime: python3.11
+      Handler: emailList.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTableName
+          NOTIFICATION_EMAIL: !Ref NotificationEmail
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # Lambda Function: Categorize Items
+  CategorizeItemsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-CategorizeItems'
+      Description: Auto-categorize shopping list items using AI
+      Runtime: python3.11
+      Handler: categorizeItems.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTableName
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  CreateItemFunctionArn:
+    Description: ARN of CreateItem Lambda function
+    Value: !GetAtt CreateItemFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-CreateItemArn'
+
+  GetItemsFunctionArn:
+    Description: ARN of GetItems Lambda function
+    Value: !GetAtt GetItemsFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-GetItemsArn'
+
+  UpdateItemFunctionArn:
+    Description: ARN of UpdateItem Lambda function
+    Value: !GetAtt UpdateItemFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UpdateItemArn'
+
+  DeleteItemFunctionArn:
+    Description: ARN of DeleteItem Lambda function
+    Value: !GetAtt DeleteItemFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-DeleteItemArn'
+
+  EmailListFunctionArn:
+    Description: ARN of EmailList Lambda function
+    Value: !GetAtt EmailListFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EmailListArn'
+
+  CategorizeItemsFunctionArn:
+    Description: ARN of CategorizeItems Lambda function
+    Value: !GetAtt CategorizeItemsFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-CategorizeItemsArn'
+
+  LambdaExecutionRoleArn:
+    Description: ARN of Lambda execution role
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ExecutionRoleArn'

@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Storage Stack - DynamoDB table for Shopping List application'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Description: Name of the project
+    Default: ShoppingList
+
+  Environment:
+    Type: String
+    Description: Environment name
+    Default: Dev
+    AllowedValues:
+      - Dev
+      - Staging
+      - Prod
+
+  BillingMode:
+    Type: String
+    Description: DynamoDB billing mode
+    Default: PAY_PER_REQUEST
+    AllowedValues:
+      - PAY_PER_REQUEST
+      - PROVISIONED
+
+  ReadCapacityUnits:
+    Type: Number
+    Description: Read capacity units (only used if BillingMode is PROVISIONED)
+    Default: 5
+    MinValue: 1
+
+  WriteCapacityUnits:
+    Type: Number
+    Description: Write capacity units (only used if BillingMode is PROVISIONED)
+    Default: 5
+    MinValue: 1
+
+Conditions:
+  UseProvisionedBilling: !Equals [!Ref BillingMode, 'PROVISIONED']
+
+Resources:
+  # DynamoDB Table for Shopping List Items
+  ShoppingListTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-${Environment}'
+      BillingMode: !Ref BillingMode
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: itemId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: itemId
+          KeyType: RANGE
+      ProvisionedThroughput: !If
+        - UseProvisionedBilling
+        - ReadCapacityUnits: !Ref ReadCapacityUnits
+          WriteCapacityUnits: !Ref WriteCapacityUnits
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  TableName:
+    Description: Name of the DynamoDB table
+    Value: !Ref ShoppingListTable
+    Export:
+      Name: !Sub '${AWS::StackName}-TableName'
+
+  TableArn:
+    Description: ARN of the DynamoDB table
+    Value: !GetAtt ShoppingListTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-TableArn'

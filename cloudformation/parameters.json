@@ -1,0 +1,62 @@
+[
+  {
+    "ParameterKey": "ProjectName",
+    "ParameterValue": "ShoppingList"
+  },
+  {
+    "ParameterKey": "Environment",
+    "ParameterValue": "Dev"
+  },
+  {
+    "ParameterKey": "TemplatesBucketName",
+    "ParameterValue": "my-cloudformation-templates-bucket"
+  },
+  {
+    "ParameterKey": "NotificationEmail",
+    "ParameterValue": "gianlucaformica@outlook.com"
+  },
+  {
+    "ParameterKey": "DomainName",
+    "ParameterValue": "shoppinglist.gianlucaformica.net"
+  },
+  {
+    "ParameterKey": "AcmCertificateArn",
+    "ParameterValue": "arn:aws:acm:us-east-1:016164185850:certificate/0fc10d48-1bcb-4454-90dd-ee62d35af566"
+  },
+  {
+    "ParameterKey": "ApiStageName",
+    "ParameterValue": "dev"
+  },
+  {
+    "ParameterKey": "DynamoDBBillingMode",
+    "ParameterValue": "PAY_PER_REQUEST"
+  },
+  {
+    "ParameterKey": "LambdaTimeout",
+    "ParameterValue": "60"
+  },
+  {
+    "ParameterKey": "LambdaMemorySize",
+    "ParameterValue": "256"
+  },
+  {
+    "ParameterKey": "BillingThreshold1",
+    "ParameterValue": "10"
+  },
+  {
+    "ParameterKey": "BillingThreshold2",
+    "ParameterValue": "20"
+  },
+  {
+    "ParameterKey": "BillingThreshold3",
+    "ParameterValue": "30"
+  },
+  {
+    "ParameterKey": "BillingThreshold4",
+    "ParameterValue": "50"
+  },
+  {
+    "ParameterKey": "BillingThreshold5",
+    "ParameterValue": "100"
+  }
+]
