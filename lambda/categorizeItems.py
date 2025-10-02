@@ -20,7 +20,7 @@ bedrock_runtime = boto3.client('bedrock-runtime', region_name='eu-west-1')
 table = dynamodb.Table('ShoppingList')
 
 # Bedrock model configuration
-BEDROCK_MODEL_ID = 'us.anthropic.claude-3-5-haiku-20241022-v1:0'
+BEDROCK_MODEL_ID = 'amazon.nova-micro-v1:0'
 
 # Standard grocery categories
 CATEGORIES = [
@@ -206,17 +206,22 @@ Item: {item_name}
 
 Return ONLY the category name, nothing else. If unsure, return 'Unknown Category'."""
 
-    # Prepare request for Claude 3.5 Haiku
+    # Prepare request for Amazon Nova
     request_body = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 50,
-        "temperature": 0,
         "messages": [
             {
                 "role": "user",
-                "content": prompt
+                "content": [
+                    {
+                        "text": prompt
+                    }
+                ]
             }
-        ]
+        ],
+        "inferenceConfig": {
+            "temperature": 0,
+            "max_new_tokens": 50
+        }
     }
 
     try:
@@ -228,9 +233,9 @@ Return ONLY the category name, nothing else. If unsure, return 'Unknown Category
             body=json.dumps(request_body)
         )
 
-        # Parse response
+        # Parse response for Nova format
         response_body = json.loads(response['body'].read())
-        category = response_body['content'][0]['text'].strip()
+        category = response_body['output']['message']['content'][0]['text'].strip()
 
         # Validate category is in our list
         if category not in CATEGORIES and category != 'Unknown Category':
