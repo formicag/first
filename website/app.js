@@ -259,9 +259,10 @@ function attachItemEventListeners() {
  */
 async function handleCheckboxChange(event) {
     const checkbox = event.target;
+    const itemElement = checkbox.closest('.shopping-item');
     const itemId = checkbox.dataset.itemId;
     const bought = checkbox.checked;
-    const userId = getUserId();
+    const userId = itemElement.dataset.userId;
 
     try {
         const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
@@ -295,8 +296,9 @@ async function handleCheckboxChange(event) {
  */
 async function handleDeleteClick(event) {
     const button = event.target;
+    const itemElement = button.closest('.shopping-item');
     const itemId = button.dataset.itemId;
-    const userId = getUserId();
+    const userId = itemElement.dataset.userId;
 
     try {
         const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
