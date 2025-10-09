@@ -298,10 +298,6 @@ async function handleDeleteClick(event) {
     const itemId = button.dataset.itemId;
     const userId = getUserId();
 
-    if (!confirm('Are you sure you want to delete this item?')) {
-        return;
-    }
-
     try {
         const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
             method: 'DELETE'
@@ -312,10 +308,11 @@ async function handleDeleteClick(event) {
         }
 
         await loadUserItems();
+        showNotification('✓ Item deleted', 'success', 2000);
 
     } catch (error) {
         console.error('Error deleting item:', error);
-        alert('Failed to delete item. Please try again.');
+        showNotification('✗ Failed to delete item. Please try again.', 'error', 3000);
     }
 }
 
