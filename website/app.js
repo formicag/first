@@ -121,17 +121,28 @@ async function fetchWithAuth(url, options = {}) {
     return fetch(url, options);
 }
 
+// Global variable to track which user is currently editing
+let currentlyEditingUser = null;
+
 /**
- * Detect which user is currently editing an item
+ * Set the currently editing user
  */
-function detectCurrentlyEditingUser() {
-    const editForm = document.querySelector('.item-edit-form');
-    if (!editForm) return null;
+function setCurrentlyEditingUser(userId) {
+    currentlyEditingUser = userId;
+}
 
-    const itemElement = editForm.closest('.shopping-item');
-    if (!itemElement) return null;
+/**
+ * Clear the currently editing user
+ */
+function clearCurrentlyEditingUser() {
+    currentlyEditingUser = null;
+}
 
-    return itemElement.dataset.userId;
+/**
+ * Get the currently editing user
+ */
+function getCurrentlyEditingUser() {
+    return currentlyEditingUser;
 }
 
 /**
@@ -156,17 +167,17 @@ function renderGroupedItems(items) {
         groupedByUser[userId].push(item);
     });
 
-    // Detect which user is currently editing (has an open edit form)
-    const currentlyEditingUser = detectCurrentlyEditingUser();
+    // Get which user is currently editing
+    const editingUser = getCurrentlyEditingUser();
 
     // Sort users: Put currently editing user first, otherwise Gianluca first, then Nicole
     let sortedUsers = allowedUsers.filter(user => groupedByUser[user]);
 
-    if (currentlyEditingUser) {
+    if (editingUser) {
         // Move the editing user to the front
         sortedUsers = sortedUsers.sort((a, b) => {
-            if (a === currentlyEditingUser) return -1;
-            if (b === currentlyEditingUser) return 1;
+            if (a === editingUser) return -1;
+            if (b === editingUser) return 1;
             return allowedUsers.indexOf(a) - allowedUsers.indexOf(b);
         });
     }
@@ -192,10 +203,13 @@ function renderGroupedItems(items) {
             return a.localeCompare(b);
         });
 
-        // Add user header with basket emoji right-aligned
-        html += `<div class="user-group" data-user-id="${escapeHtml(userId)}">`;
+        // Add user header with basket emoji right-aligned and person emoji
+        const userEmoji = userId === 'Gianluca' ? '👨' : '👩';
+        const userColorClass = userId === 'Gianluca' ? 'user-gianluca' : 'user-nicole';
+
+        html += `<div class="user-group ${userColorClass}" data-user-id="${escapeHtml(userId)}">`;
         html += `<div class="user-header">`;
-        html += `<span class="user-header-name">${escapeHtml(userId)}'s List</span>`;
+        html += `<span class="user-header-name">${userEmoji} ${escapeHtml(userId)}'s List</span>`;
         html += `<span class="user-header-count">🛒 ${userItems.length}</span>`;
         html += `</div>`;
 
@@ -315,7 +329,23 @@ function handleItemEdit(event) {
     const currentName = itemElement.dataset.itemName;
     const currentQty = parseInt(itemElement.dataset.quantity);
 
-    const itemDetails = itemElement.querySelector('.item-details');
+    // Set this user as currently editing and re-render to move their list to top
+    setCurrentlyEditingUser(userId);
+    loadUserItems();  // Re-render with new order
+
+    // Wait for re-render, then find the item again and show edit form
+    setTimeout(() => {
+        const newItemElement = document.querySelector(`.shopping-item[data-item-id="${itemId}"]`);
+        if (!newItemElement) return;
+
+        const itemDetails = newItemElement.querySelector('.item-details');
+        const editButton = newItemElement.querySelector('.btn-edit');
+
+        showEditForm(newItemElement, itemDetails, editButton, itemId, userId, currentName, currentQty);
+    }, 100);
+}
+
+function showEditForm(itemElement, itemDetails, button, itemId, userId, currentName, currentQty) {
 
     // Create edit form
     const editForm = document.createElement('div');
@@ -351,6 +381,7 @@ function handleItemEdit(event) {
 
         if (newName === currentName && newQty === currentQty) {
             // No changes, just restore
+            clearCurrentlyEditingUser();
             await loadUserItems();
             return;
         }
@@ -372,18 +403,21 @@ function handleItemEdit(event) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
+            clearCurrentlyEditingUser();
             await loadUserItems();
             showNotification('✓ Item updated', 'success', 2000);
 
         } catch (error) {
             console.error('Error updating item:', error);
             showNotification('✗ Failed to update item', 'error', 3000);
+            clearCurrentlyEditingUser();
             await loadUserItems();
         }
     };
 
     // Handle cancel
     const cancelEdit = () => {
+        clearCurrentlyEditingUser();
         loadUserItems();
     };
 

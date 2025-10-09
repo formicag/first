@@ -294,6 +294,15 @@ header h1 {
     color: #58a6ff;
 }
 
+/* User-specific colors */
+.user-gianluca .user-header-name {
+    color: #58a6ff;
+}
+
+.user-nicole .user-header-name {
+    color: #f778ba;
+}
+
 /* Category Groups */
 .category-group {
     margin-bottom: 12px;
