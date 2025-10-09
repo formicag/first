@@ -11,13 +11,23 @@ Full-stack serverless application demonstrating AWS cloud architecture, CI/CD au
 ## Features
 
 ### Core Functionality
-- ✅ **Multi-User Shopping Lists**: View and manage shopping lists for multiple users
+- ✅ **Multi-User Shopping Lists**: View and manage shopping lists for multiple users (Gianluca & Nicole)
 - ✅ **Real-time CRUD Operations**: Add, update, mark as bought, and delete items
-- ✅ **Smart Categorization**: AI-powered automatic categorization using Amazon Bedrock (Claude 3.5 Sonnet)
-- ✅ **Spelling Correction**: Automatic spelling fixes during categorization
+- ✅ **AI-Powered Item Processing**: Amazon Bedrock (Claude 3 Haiku) automatically:
+  - Corrects spelling mistakes
+  - Capitalizes item names
+  - Assigns emojis to items
+  - Estimates Sainsbury's UK prices
+  - Categorizes into UK supermarket aisles
+- ✅ **Price Management**:
+  - Automatic price estimation when adding items
+  - Bulk price recalculation for all items
+  - Real-time total price calculation per user and combined
+- ✅ **Shop History**: Store complete shopping list snapshots with date, time, items, and total price
+- ✅ **Customizable AI Prompts**: Configure custom instructions and household-specific terminology
 - ✅ **Email Lists**: Send shopping lists via Amazon SES
 - ✅ **Grouped Display**: Items organized by user and category
-- ✅ **Responsive Design**: Clean, modern UI with gradient styling
+- ✅ **Dark Theme UI**: Modern GitHub-inspired dark theme with user-specific colors
 
 ### Technical Features
 - ✅ **Serverless Architecture**: Built entirely on AWS serverless services
@@ -37,9 +47,11 @@ Full-stack serverless application demonstrating AWS cloud architecture, CI/CD au
 
 ### Backend
 - **Compute**: AWS Lambda (Python 3.11)
-- **Database**: Amazon DynamoDB (ShoppingList table)
+- **Database**: Amazon DynamoDB
+  - `ShoppingList` - Active shopping list items
+  - `ShoppingList-ShopHistory-Dev` - Historical shop snapshots
 - **API**: Amazon API Gateway (REST API)
-- **AI/ML**: Amazon Bedrock (Claude 3.5 Sonnet for categorization)
+- **AI/ML**: Amazon Bedrock (Claude 3 Haiku for item processing, categorization, and price estimation)
 - **Email**: Amazon SES
 - **Authentication**: Amazon Cognito (currently bypassed)
 
@@ -60,12 +72,15 @@ first/
 │   ├── auth.js                # Authentication (bypassed)
 │   └── styles.css             # Styling
 ├── lambda/                     # Backend Lambda functions
-│   ├── createItem.py          # Create new shopping list items
+│   ├── createItem.py          # Create new items with AI processing (spell check, emoji, price, category)
 │   ├── getItems.py            # Retrieve items (scans all users)
 │   ├── updateItem.py          # Update item status
 │   ├── deleteItem.py          # Delete items
 │   ├── emailList.py           # Send email with shopping list
-│   ├── categorizeItems.py     # AI-powered categorization
+│   ├── categorizeItems.py     # AI-powered bulk categorization
+│   ├── improvePrompt.py       # AI prompt enrichment system
+│   ├── recalculatePrices.py   # Bulk price recalculation with AI
+│   ├── storeShop.py           # Store shop history snapshot
 │   └── cognito_helper.py      # Cognito utilities (bypassed)
 ├── cloudformation/             # Infrastructure as Code
 │   ├── main-stack.yaml        # Main nested stack
@@ -85,19 +100,38 @@ first/
 
 ## AWS Resources
 
-### DynamoDB
-- **Table**: `ShoppingList`
+### DynamoDB Tables
+
+**ShoppingList** - Active shopping list items
 - **Partition Key**: `userId` (String)
 - **Sort Key**: `itemId` (String)
-- **Attributes**: itemName, quantity, category, bought, addedDate, boughtDate
+- **Attributes**:
+  - `itemName` - Item name (AI spell-checked and capitalized)
+  - `emoji` - AI-assigned emoji for the item
+  - `quantity` - Quantity of items
+  - `estimatedPrice` - Sainsbury's UK price estimate (Decimal)
+  - `category` - UK supermarket aisle category
+  - `bought` - Boolean flag for purchased items
+  - `addedDate` - ISO timestamp when item was added
+
+**ShoppingList-ShopHistory-Dev** - Historical shop snapshots
+- **Partition Key**: `shopId` (String - UUID)
+- **Sort Key**: `shopDate` (String - ISO timestamp)
+- **Attributes**:
+  - `totalItems` - Number of items in shop
+  - `totalPrice` - Total estimated price (Decimal)
+  - `items` - Array of all items with full details (userId, itemName, emoji, quantity, estimatedPrice, category, bought)
 
 ### Lambda Functions
-- `ShoppingList-CreateItem` - Create new items
+- `ShoppingList-CreateItem` - Create new items with full AI processing (spell check, emoji, price, category)
 - `ShoppingList-GetItems` - Retrieve all items (table scan)
 - `ShoppingList-UpdateItem` - Update item properties
 - `ShoppingList-DeleteItem` - Delete items
-- `ShoppingList-EmailList` - Send email notifications
-- `ShoppingList-CategorizeItems` - AI categorization with Bedrock
+- `ShoppingList-EmailList` - Send email notifications via SES
+- `ShoppingList-CategorizeItems` - AI bulk categorization with Bedrock
+- `ShoppingList-ImprovePrompt` - AI prompt enrichment system
+- `ShoppingList-RecalculatePrices` - Bulk price recalculation with AI (Sainsbury's UK estimates)
+- `ShoppingList-StoreShop` - Store complete shopping list snapshot to history
 
 ### API Gateway
 - **API ID**: `01mmfw29n0`
@@ -105,12 +139,15 @@ first/
 - **Base URL**: `https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev`
 - **Authorization**: NONE (Cognito bypassed)
 - **Endpoints**:
-  - `GET /items/{userId}` - Get items
-  - `POST /items` - Create item
+  - `GET /items/{userId}?bought=all` - Get items (scans all users)
+  - `POST /items` - Create item with AI processing (spell check, emoji, price, category)
   - `PUT /items/{userId}/{itemId}` - Update item
   - `DELETE /items/{userId}/{itemId}` - Delete item
-  - `POST /email/{userId}` - Send email
-  - `POST /categorize/{userId}` - Categorize items
+  - `POST /email/{userId}` - Send email with shopping list
+  - `POST /categorize/{userId}` - AI bulk categorization
+  - `POST /improve-prompt` - AI prompt enrichment
+  - `POST /prices/recalculate` - Recalculate all item prices with AI
+  - `POST /shop/store` - Store shop snapshot to history
 
 ### S3 & CloudFront
 - **S3 Bucket**: `shoppinglist.gianlucaformica.net`
@@ -123,6 +160,10 @@ first/
 
 ### IAM Roles
 - **Lambda Execution**: `ShoppingListLambdaRole`
+  - DynamoDB access (ShoppingList and ShoppingList-ShopHistory-Dev tables)
+  - Bedrock model invocation (Claude 3 Haiku)
+  - SES email sending
+  - CloudWatch Logs
 - **GitHub Actions**: `GitHubActionsDeployRole` (OIDC)
 
 ## Deployment
@@ -233,13 +274,13 @@ To re-enable Cognito authentication, see [COGNITO-BYPASS-DEPLOYMENT.md](COGNITO-
 
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
 - **Backend**: Python 3.11, AWS Lambda
-- **Database**: DynamoDB
-- **API**: API Gateway REST API
-- **AI/ML**: Amazon Bedrock (Claude 3.5 Sonnet)
+- **Database**: DynamoDB (2 tables)
+- **API**: API Gateway REST API (9 endpoints)
+- **AI/ML**: Amazon Bedrock (Claude 3 Haiku for spell check, emoji assignment, price estimation, categorization)
 - **Email**: Amazon SES
 - **Hosting**: S3 + CloudFront
-- **CI/CD**: GitHub Actions
-- **IAC**: CloudFormation
+- **CI/CD**: GitHub Actions with OIDC
+- **IAC**: CloudFormation (nested stacks)
 
 ## License
 

@@ -95,10 +95,19 @@ main-stack.yaml (Root Stack)
 
 ### 5. Compute Stack (`compute-stack.yaml`)
 - **Resources**:
-  - IAM execution role
-  - 6 Lambda functions (CreateItem, GetItems, UpdateItem, DeleteItem, EmailList, CategorizeItems)
+  - IAM execution role with DynamoDB, Bedrock, SES, and CloudWatch permissions
+  - 9 Lambda functions:
+    - **CreateItem** - Create items with AI processing (spell check, emoji, price, category)
+    - **GetItems** - Retrieve all items
+    - **UpdateItem** - Update item properties
+    - **DeleteItem** - Delete items
+    - **EmailList** - Send email notifications
+    - **CategorizeItems** - AI bulk categorization
+    - **ImprovePrompt** - AI prompt enrichment
+    - **RecalculatePrices** - Bulk price recalculation with AI
+    - **StoreShop** - Store shop history snapshots
 - **Outputs**: Function ARNs, Role ARN
-- **Note**: Contains placeholder code - actual code must be deployed separately
+- **Note**: Contains placeholder code - actual code must be deployed separately via GitHub Actions or AWS CLI
 
 ### 6. API Stack (`api-stack.yaml`)
 - **Resources**:
@@ -214,13 +223,13 @@ The Lambda functions are created with placeholder code. Deploy actual code:
 cd ../lambda
 
 # Package and deploy each function
-for func in createItem getItems updateItem deleteItem emailList categorizeItems; do
+for func in createItem getItems updateItem deleteItem emailList categorizeItems improvePrompt recalculatePrices storeShop; do
   # Create deployment package
   zip ${func}.zip ${func}.py cognito_helper.py
 
   # Update function code
   aws lambda update-function-code \
-    --function-name ShoppingList-Dev-${func^} \
+    --function-name ShoppingList-${func^} \
     --zip-file fileb://${func}.zip \
     --region eu-west-1 \
     --profile AdministratorAccess-016164185850
@@ -357,12 +366,20 @@ Then re-upload to S3 and invalidate CloudFront cache.
 
 ### 6. Enable Bedrock Model Access
 
-For the categorizeItems function to work, enable Bedrock model access:
+For AI-powered features to work, enable Bedrock model access:
 
 1. Go to AWS Bedrock console
 2. Navigate to "Model access"
-3. Request access to "Claude 3 Haiku"
+3. Request access to "Claude 3 Haiku" (`anthropic.claude-3-haiku-20240307-v1:0`)
 4. Wait for approval (usually instant)
+
+**AI Features Enabled**:
+- Automatic spell checking and capitalization
+- Emoji assignment for items
+- Sainsbury's UK price estimation
+- UK supermarket category assignment
+- Bulk price recalculation
+- Custom prompt enrichment
 
 ## Updating Stacks
 
