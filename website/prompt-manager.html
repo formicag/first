@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Manager - Shopping List</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .prompt-manager-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .prompt-display {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin-bottom: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .context-item {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .context-item-content {
+            flex: 1;
+        }
+
+        .context-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .context-item .meaning {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .btn-delete-context {
+            padding: 6px 12px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-delete-context:hover {
+            background: #e84051;
+        }
+
+        .feedback-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .feedback-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .status-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
+        .add-context-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .add-context-form input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .add-context-form input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .examples-box {
+            background: #fffbeb;
+            border: 2px solid #fbbf24;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .examples-box h4 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .examples-box ul {
+            margin-left: 20px;
+            color: #78350f;
+        }
+
+        .examples-box li {
+            margin-bottom: 5px;
+        }
+
+        .prompt-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Prompt Manager</h1>
+            <p class="subtitle">Teach the AI about your preferences</p>
+        </header>
+
+        <div class="prompt-manager-container">
+            <a href="index.html" class="back-link">← Back to Shopping List</a>
+
+            <!-- Statistics -->
+            <div class="section">
+                <h2>📊 Prompt Statistics</h2>
+                <div class="prompt-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="context-count">0</div>
+                        <div class="stat-label">Context Items</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="prompt-length">0</div>
+                        <div class="stat-label">Prompt Characters</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="last-updated">Never</div>
+                        <div class="stat-label">Last Updated</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Prompt -->
+            <div class="section">
+                <h2>📝 Current AI Prompt</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    This is the full instruction set sent to the AI when processing items.
+                </p>
+                <div class="prompt-display" id="current-prompt">Loading...</div>
+                <button class="btn-primary" id="refresh-prompt-btn">🔄 Refresh Prompt</button>
+                <button class="btn-secondary" id="copy-prompt-btn">📋 Copy to Clipboard</button>
+            </div>
+
+            <!-- Natural Language Feedback -->
+            <div class="section">
+                <h2>💬 Improve Prompt with Feedback</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    Tell the AI how to improve in natural language. The AI will update the prompt based on your feedback.
+                </p>
+
+                <div class="examples-box">
+                    <h4>💡 Example Feedback:</h4>
+                    <ul>
+                        <li>"Use UK English for all items"</li>
+                        <li>"Flash means bleach bathroom cleaner, not camera flash"</li>
+                        <li>"Bounty means kitchen paper towels, not chocolate bars"</li>
+                        <li>"Prioritize fresh produce categories for vegetables"</li>
+                        <li>"When I say 'milk', I usually mean semi-skimmed milk"</li>
+                    </ul>
+                </div>
+
+                <textarea
+                    id="feedback-input"
+                    class="feedback-input"
+                    rows="4"
+                    placeholder="Type your feedback here... e.g., 'Flash means bleach cleaner, not camera flash'"
+                ></textarea>
+
+                <button class="btn-primary" id="improve-prompt-btn">
+                    🤖 Let AI Improve Prompt
+                </button>
+
+                <div id="feedback-status"></div>
+            </div>
+
+            <!-- User-Specific Context -->
+            <div class="section">
+                <h2>🏠 Household Context</h2>
+                <p style="color: #666; margin-bottom: 15px;">
+                    Teach the AI about your household's specific meanings for words and brands.
+                </p>
+
+                <div id="context-list"></div>
+
+                <div class="add-context-form">
+                    <input
+                        type="text"
+                        id="context-term"
+                        placeholder="Word/Brand (e.g., Flash)"
+                    >
+                    <input
+                        type="text"
+                        id="context-meaning"
+                        placeholder="Meaning (e.g., bleach bathroom cleaner)"
+                    >
+                    <button class="btn-primary" id="add-context-btn">+ Add</button>
+                </div>
+            </div>
+
+            <!-- UK English Settings -->
+            <div class="section">
+                <h2>🇬🇧 Language & Preferences</h2>
+                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; cursor: pointer;">
+                    <input type="checkbox" id="uk-english-toggle" checked style="width: 20px; height: 20px; cursor: pointer;">
+                    <span>Use UK English (colour, flavour, courgette, aubergine, etc.)</span>
+                </label>
+
+                <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; cursor: pointer;">
+                    <input type="checkbox" id="strict-categories-toggle" checked style="width: 20px; height: 20px; cursor: pointer;">
+                    <span>Strictly use UK supermarket category names (Tesco, Sainsbury's, Asda style)</span>
+                </label>
+
+                <button class="btn-primary" id="save-preferences-btn">💾 Save Preferences</button>
+                <div id="preferences-status"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="prompt-manager.js"></script>
+</body>
+</html>

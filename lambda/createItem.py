@@ -113,6 +113,9 @@ def lambda_handler(event, context):
         item_name = body['itemName']
         quantity = body['quantity']
         custom_prompt = body.get('customPrompt', '')  # Optional AI prompt customization
+        context_items = body.get('contextItems', [])  # Household-specific context
+        use_uk_english = body.get('useUKEnglish', True)  # UK English preference
+        strict_categories = body.get('strictCategories', True)  # Strict UK categories
 
         # Validate quantity is a positive number
         try:
@@ -134,7 +137,13 @@ def lambda_handler(event, context):
 
         # Use AI to process item name: spell check, capitalize, and categorize
         logger.info(f"Processing item with AI: {item_name}")
-        ai_result = process_item_with_ai(item_name, custom_prompt)
+        ai_result = process_item_with_ai(
+            item_name,
+            custom_prompt,
+            context_items,
+            use_uk_english,
+            strict_categories
+        )
 
         corrected_name = ai_result['correctedName']
         category = ai_result['category']
@@ -196,7 +205,7 @@ def lambda_handler(event, context):
         }
 
 
-def process_item_with_ai(item_name, custom_prompt=''):
+def process_item_with_ai(item_name, custom_prompt='', context_items=[], use_uk_english=True, strict_categories=True):
     """
     Use Amazon Bedrock to process a grocery item:
     1. Correct spelling
@@ -206,6 +215,9 @@ def process_item_with_ai(item_name, custom_prompt=''):
     Args:
         item_name: Name of the grocery item
         custom_prompt: Optional custom instructions to add to the AI prompt
+        context_items: List of {term, meaning} dictionaries for household-specific context
+        use_uk_english: Whether to enforce UK English spelling and terminology
+        strict_categories: Whether to strictly use UK supermarket category names
 
     Returns:
         dict: Dictionary with 'correctedName' and 'category' keys
@@ -216,7 +228,22 @@ def process_item_with_ai(item_name, custom_prompt=''):
     # Base prompt
     base_prompt = f"""You are a UK shopping assistant helping to process grocery items.
 
-For this item: '{item_name}'
+For this item: '{item_name}'"""
+
+    # Add UK English instruction if enabled
+    if use_uk_english:
+        base_prompt += """
+
+IMPORTANT: Use UK English spelling and terminology.
+Examples: colour (not color), flavour (not flavor), courgette (not zucchini), aubergine (not eggplant)"""
+
+    # Add household context if provided
+    if context_items:
+        base_prompt += "\n\nHOUSEHOLD CONTEXT (Gianluca and Nicole's specific meanings):\n"
+        for item in context_items:
+            base_prompt += f"- \"{item['term']}\" means {item['meaning']}\n"
+
+    base_prompt += """
 
 TASK 1 - Spelling Correction:
 - Correct any spelling mistakes
@@ -226,11 +253,20 @@ TASK 1 - Spelling Correction:
 TASK 2 - Capitalization:
 - Capitalize the FIRST letter of EACH word
 - Examples: "pork chops" → "Pork Chops", "tomato" → "Tomato"
+"""
 
+    # Add categorization task
+    if strict_categories:
+        base_prompt += f"""
 TASK 3 - Categorization:
 - Categorize into ONE of these UK shopping centre aisles: {categories_str}
 - Use standard UK supermarket terminology
 - Think about where this would be found in a typical Tesco, Sainsbury's, or Asda"""
+    else:
+        base_prompt += f"""
+TASK 3 - Categorization:
+- Categorize into ONE of these UK shopping centre aisles: {categories_str}
+- You may suggest alternative category names if more appropriate"""
 
     # Add custom prompt if provided
     if custom_prompt and custom_prompt.strip():

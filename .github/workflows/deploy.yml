@@ -37,7 +37,7 @@ jobs:
           cd lambda
 
           # Package each modified function
-          for func in createItem getItems updateItem deleteItem emailList categorizeItems; do
+          for func in createItem getItems updateItem deleteItem emailList categorizeItems improvePrompt; do
             echo "Packaging ${func}..."
             zip ${func}.zip ${func}.py cognito_helper.py
 

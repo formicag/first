@@ -328,14 +328,20 @@ function setupFormHandler() {
         submitButton.textContent = '🤖 AI Processing...';
 
         try {
-            // Get custom AI prompt from localStorage
+            // Get custom AI prompt and context from localStorage
             const customPrompt = localStorage.getItem('customAIPrompt') || '';
+            const contextItems = JSON.parse(localStorage.getItem('contextItems') || '[]');
+            const useUKEnglish = localStorage.getItem('useUKEnglish') !== 'false';
+            const strictCategories = localStorage.getItem('strictCategories') !== 'false';
 
             const payload = {
                 userId: selectedUser,
                 itemName,
                 quantity,
-                customPrompt  // Send custom prompt to Lambda
+                customPrompt,        // Send custom prompt to Lambda
+                contextItems,        // Send household context
+                useUKEnglish,        // Send UK English preference
+                strictCategories     // Send strict categories preference
             };
 
             const response = await fetchWithAuth(`${API_BASE_URL}/items`, {
