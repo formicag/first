@@ -7,10 +7,10 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: #0d1117;
     min-height: 100vh;
     padding: 20px;
-    color: #e0e0e0;
+    color: #c9d1d9;
 }
 
 .container {
@@ -40,19 +40,21 @@ header h1 {
     position: absolute;
     top: 20px;
     right: 20px;
-    padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    padding: 6px 12px;
+    background: transparent;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.2s;
 }
 
 .btn-logout:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: #21262d;
+    border-color: #8b949e;
+    color: #c9d1d9;
 }
 
 /* Lists Container */
@@ -65,10 +67,11 @@ header h1 {
 
 /* List Section */
 .list-section {
-    background: #0f3460;
-    border-radius: 15px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    background: #161b22;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid #30363d;
 }
 
 .list-header {
@@ -77,34 +80,39 @@ header h1 {
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #2d3e50;
+    border-bottom: 1px solid #30363d;
 }
 
 .list-header h2 {
-    font-size: 1.8rem;
-    color: #4ecca3;
+    font-size: 1.6rem;
+    color: #c9d1d9;
     margin-right: 20px;
+    font-weight: 600;
 }
 
 .item-count {
-    color: #4ecca3;
+    color: #58a6ff;
     padding: 4px 8px;
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 /* Add Item Form */
 .add-item-form {
-    background: #1a2332;
-    padding: 15px;
-    border-radius: 10px;
+    background: #0d1117;
+    padding: 16px;
+    border-radius: 8px;
     margin-bottom: 20px;
+    border: 1px solid #30363d;
 }
 
 .add-item-form h3 {
-    font-size: 1.1rem;
-    color: #4ecca3;
-    margin-bottom: 15px;
+    font-size: 0.95rem;
+    color: #8b949e;
+    margin-bottom: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .form-group {
@@ -120,28 +128,29 @@ header h1 {
 
 .add-item-form label {
     display: block;
-    font-weight: 600;
-    color: #4ecca3;
-    margin-bottom: 8px;
-    font-size: 0.95rem;
+    font-weight: 500;
+    color: #8b949e;
+    margin-bottom: 6px;
+    font-size: 0.875rem;
 }
 
 .add-item-form input,
 .add-item-form select {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #2d3e50;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-    background: #0f3460;
-    color: #e0e0e0;
+    padding: 8px 12px;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    background: #0d1117;
+    color: #c9d1d9;
 }
 
 .add-item-form input:focus,
 .add-item-form select:focus {
     outline: none;
-    border-color: #4ecca3;
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
 }
 
 .add-item-form select {
@@ -150,54 +159,52 @@ header h1 {
 
 .btn-add {
     width: 100%;
-    padding: 10px;
-    background: #4ecca3;
-    color: #0f3460;
+    padding: 8px 16px;
+    background: #238636;
+    color: #ffffff;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s, transform 0.1s;
+    transition: all 0.2s;
 }
 
 .btn-add:hover {
-    background: #3ba886;
-    transform: translateY(-2px);
+    background: #2ea043;
 }
 
 .btn-add:active {
-    transform: translateY(0);
+    background: #1a7f37;
 }
 
 /* Action Buttons Container */
 .action-buttons {
     margin-top: 20px;
     padding-top: 15px;
-    border-top: 1px solid #2d3e50;
+    border-top: 1px solid #30363d;
 }
 
 .btn-email {
     width: 100%;
-    padding: 10px;
-    background: #10b981;
+    padding: 8px 16px;
+    background: #1f6feb;
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s, transform 0.1s;
+    transition: all 0.2s;
     margin-bottom: 8px;
 }
 
 .btn-email:hover {
-    background: #059669;
-    transform: translateY(-2px);
+    background: #388bfd;
 }
 
 .btn-email:active {
-    transform: translateY(0);
+    background: #1158c7;
 }
 
 .btn-email:disabled {
@@ -208,35 +215,36 @@ header h1 {
 
 .btn-configure-ai {
     width: 100%;
-    padding: 10px;
-    background: #8b5cf6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    padding: 8px 16px;
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s, transform 0.1s;
+    transition: all 0.2s;
     margin-bottom: 8px;
 }
 
 .btn-configure-ai:hover {
-    background: #7c3aed;
-    transform: translateY(-2px);
+    background: #30363d;
+    border-color: #8b949e;
 }
 
 .btn-configure-ai:active {
-    transform: translateY(0);
+    background: #161b22;
 }
 
 .success-message {
-    background: #10b981;
+    background: #238636;
     color: white;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
     text-align: center;
     animation: slideIn 0.3s ease-out;
+    border: 1px solid #2ea043;
 }
 
 @keyframes slideIn {
@@ -257,34 +265,36 @@ header h1 {
 
 /* User Groups */
 .user-group {
-    margin-bottom: 25px;
-    padding: 15px;
-    background: #1a2332;
-    border-radius: 12px;
-    border: 1px solid #2d3e50;
+    margin-bottom: 20px;
+    padding: 12px;
+    background: #0d1117;
+    border-radius: 8px;
+    border: 1px solid #30363d;
 }
 
 .user-header {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #4ecca3;
-    margin-bottom: 15px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #c9d1d9;
+    margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #4ecca3;
+    border-bottom: 1px solid #30363d;
 }
 
 /* Category Groups */
 .category-group {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .category-header {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #4ecca3;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #8b949e;
     margin-bottom: 8px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #2d3e50;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #21262d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .loading {
@@ -312,22 +322,22 @@ header h1 {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px;
-    background: #0a2540;
-    border: 1px solid #2d3e50;
-    border-radius: 10px;
-    margin-bottom: 6px;
-    transition: all 0.3s;
+    padding: 10px 12px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    transition: all 0.2s;
 }
 
 .shopping-item:hover {
-    border-color: #4ecca3;
-    box-shadow: 0 4px 12px rgba(78, 204, 163, 0.2);
+    background: #1c2128;
+    border-color: #8b949e;
 }
 
 .shopping-item.bought {
-    background: #1a2332;
-    opacity: 0.6;
+    background: #0d1117;
+    opacity: 0.5;
 }
 
 .item-checkbox {
@@ -362,9 +372,9 @@ header h1 {
 }
 
 .item-name {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e0e0e0;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #c9d1d9;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -381,29 +391,29 @@ header h1 {
 }
 
 .edit-name-input {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e0e0e0;
-    border: 1px solid #4ecca3;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #c9d1d9;
+    border: 1px solid #58a6ff;
     border-radius: 4px;
     padding: 4px 8px;
     outline: none;
     flex: 1;
     min-width: 100px;
-    background: #0f3460;
+    background: #0d1117;
 }
 
 .edit-qty-input {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #e0e0e0;
-    border: 1px solid #4ecca3;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #c9d1d9;
+    border: 1px solid #58a6ff;
     border-radius: 4px;
     padding: 4px 8px;
     outline: none;
     width: 70px;
     text-align: center;
-    background: #0f3460;
+    background: #0d1117;
 }
 
 .btn-save-edit,
@@ -418,23 +428,23 @@ header h1 {
 }
 
 .btn-save-edit {
-    color: #10b981;
-    opacity: 0.8;
+    color: #238636;
+    opacity: 0.9;
 }
 
 .btn-save-edit:hover {
     opacity: 1;
-    transform: scale(1.2);
+    transform: scale(1.1);
 }
 
 .btn-cancel-edit {
-    color: #ff4757;
-    opacity: 0.7;
+    color: #da3633;
+    opacity: 0.8;
 }
 
 .btn-cancel-edit:hover {
     opacity: 1;
-    transform: scale(1.2);
+    transform: scale(1.1);
 }
 
 .btn-save-edit:active,
@@ -443,40 +453,40 @@ header h1 {
 }
 
 .item-name-input {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #e0e0e0;
-    border: 1px solid #4ecca3;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #c9d1d9;
+    border: 1px solid #58a6ff;
     border-radius: 4px;
     padding: 4px 8px;
     outline: none;
     width: 100%;
-    background: #0f3460;
+    background: #0d1117;
 }
 
 .shopping-item.bought .item-name {
     text-decoration: line-through;
-    color: #7c8a9d;
+    color: #6e7681;
 }
 
 .item-quantity {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #b0b8c3;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #8b949e;
     white-space: nowrap;
 }
 
 .item-quantity-input {
-    font-size: 0.9rem;
-    font-weight: 600;
-    border: 1px solid #4ecca3;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #58a6ff;
     border-radius: 4px;
     padding: 4px 8px;
     outline: none;
     width: 70px;
     text-align: center;
-    background: #0f3460;
-    color: #e0e0e0;
+    background: #0d1117;
+    color: #c9d1d9;
 }
 
 /* Edit Buttons */
@@ -501,26 +511,26 @@ header h1 {
 }
 
 .item-category {
-    color: #4ecca3;
+    color: #58a6ff;
 }
 
 .btn-delete {
     padding: 6px 10px;
     background: transparent;
-    color: #ff6b6b;
+    color: #da3633;
     border: none;
     border-radius: 6px;
     font-size: 1.2rem;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
+    transition: all 0.2s;
     flex-shrink: 0;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 .btn-delete:hover {
     opacity: 1;
-    background: rgba(255, 107, 107, 0.1);
-    transform: scale(1.1);
+    background: rgba(218, 54, 51, 0.1);
+    transform: scale(1.05);
 }
 
 .btn-delete:active {
@@ -529,12 +539,13 @@ header h1 {
 
 /* Error Message */
 .error-message {
-    background: #c23616;
+    background: #da3633;
     color: white;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
     text-align: center;
+    border: 1px solid #f85149;
 }
 
 /* Modal Styles */
@@ -558,17 +569,17 @@ header h1 {
 }
 
 .modal-content {
-    background: #0f3460;
-    padding: 30px;
-    border-radius: 15px;
+    background: #161b22;
+    padding: 24px;
+    border-radius: 12px;
     max-width: 600px;
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
     animation: slideInModal 0.3s ease-out;
-    border: 1px solid #2d3e50;
+    border: 1px solid #30363d;
 }
 
 @keyframes slideInModal {
@@ -584,78 +595,83 @@ header h1 {
 
 .modal-close {
     position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: 2rem;
+    top: 12px;
+    right: 16px;
+    font-size: 1.5rem;
     font-weight: bold;
-    color: #7c8a9d;
+    color: #8b949e;
     cursor: pointer;
-    transition: color 0.3s;
+    transition: color 0.2s;
 }
 
 .modal-close:hover {
-    color: #e0e0e0;
+    color: #c9d1d9;
 }
 
 .modal-content h2 {
-    color: #4ecca3;
-    margin-bottom: 15px;
-    font-size: 1.5rem;
+    color: #c9d1d9;
+    margin-bottom: 12px;
+    font-size: 1.3rem;
+    font-weight: 600;
 }
 
 .modal-description {
-    color: #b0b8c3;
-    margin-bottom: 20px;
+    color: #8b949e;
+    margin-bottom: 16px;
     line-height: 1.6;
+    font-size: 0.95rem;
 }
 
 .modal-content textarea {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #2d3e50;
-    border-radius: 8px;
-    font-size: 1rem;
+    padding: 10px 12px;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-size: 0.95rem;
     font-family: inherit;
     resize: vertical;
-    transition: border-color 0.3s;
-    background: #0a2540;
-    color: #e0e0e0;
+    transition: all 0.2s;
+    background: #0d1117;
+    color: #c9d1d9;
 }
 
 .modal-content textarea:focus {
     outline: none;
-    border-color: #4ecca3;
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
 }
 
 .character-count {
     text-align: right;
-    font-size: 0.85rem;
-    color: #b0b8c3;
-    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-top: 4px;
 }
 
 .prompt-examples {
-    background: #1a2332;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 20px 0;
-    border: 1px solid #2d3e50;
+    background: #0d1117;
+    padding: 12px;
+    border-radius: 6px;
+    margin: 16px 0;
+    border: 1px solid #30363d;
 }
 
 .prompt-examples strong {
-    color: #4ecca3;
+    color: #c9d1d9;
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    font-size: 0.875rem;
 }
 
 .prompt-examples ul {
     margin-left: 20px;
-    color: #b0b8c3;
+    color: #8b949e;
 }
 
 .prompt-examples li {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     line-height: 1.5;
+    font-size: 0.875rem;
 }
 
 .modal-actions {
@@ -667,38 +683,37 @@ header h1 {
 .btn-save,
 .btn-reset {
     flex: 1;
-    padding: 12px;
+    padding: 8px 16px;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: background 0.3s, transform 0.1s;
+    transition: all 0.2s;
 }
 
 .btn-save {
-    background: #10b981;
+    background: #238636;
     color: white;
 }
 
 .btn-save:hover {
-    background: #059669;
-    transform: translateY(-2px);
+    background: #2ea043;
 }
 
 .btn-reset {
-    background: #2d3e50;
-    color: #b0b8c3;
+    background: #21262d;
+    color: #c9d1d9;
+    border: 1px solid #30363d;
 }
 
 .btn-reset:hover {
-    background: #3a4f66;
-    transform: translateY(-2px);
+    background: #30363d;
 }
 
 .btn-save:active,
 .btn-reset:active {
-    transform: translateY(0);
+    transform: scale(0.98);
 }
 
 /* Responsive Design */
@@ -709,16 +724,28 @@ header h1 {
 }
 
 @media (max-width: 768px) {
+    body {
+        padding: 12px;
+    }
+
     header h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        padding-right: 60px;
+    }
+
+    .btn-logout {
+        top: 16px;
+        right: 12px;
+        padding: 4px 8px;
+        font-size: 0.7rem;
     }
 
     .list-section {
-        padding: 20px;
+        padding: 16px;
     }
 
     .list-header h2 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
 
     .lists-container {
@@ -734,7 +761,16 @@ header h1 {
 
 @media (max-width: 480px) {
     body {
-        padding: 10px;
+        padding: 8px;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+        padding-right: 50px;
+    }
+
+    .btn-logout {
+        display: none;  /* Hide logout button on small mobile devices */
     }
 
     .form-row {
@@ -747,12 +783,12 @@ header h1 {
 
     /* Mobile-optimized item layout */
     .shopping-item {
-        padding: 10px;
+        padding: 8px;
         gap: 8px;
     }
 
     .item-details {
-        gap: 10px;
+        gap: 8px;
     }
 
     .item-name-container {
@@ -760,11 +796,11 @@ header h1 {
     }
 
     .item-name {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 
     .item-quantity {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
     }
 
     .btn-edit {
@@ -773,8 +809,8 @@ header h1 {
     }
 
     .btn-delete {
-        font-size: 1.1rem;
-        padding: 4px 8px;
+        font-size: 1rem;
+        padding: 4px 6px;
     }
 
     /* Mobile edit form */
@@ -783,20 +819,20 @@ header h1 {
     }
 
     .edit-name-input {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         padding: 4px 6px;
         min-width: 80px;
     }
 
     .edit-qty-input {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         padding: 4px 6px;
-        width: 60px;
+        width: 55px;
     }
 
     .btn-save-edit,
     .btn-cancel-edit {
-        font-size: 1.1rem;
+        font-size: 1rem;
         padding: 2px;
     }
 }
