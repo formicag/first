@@ -75,8 +75,8 @@ async function loadUserItems() {
         const allowedUsers = ['Gianluca', 'Nicole'];
         const filteredItems = items.filter(item => allowedUsers.includes(item.userId));
 
-        // Update count
-        countElement.textContent = `${filteredItems.length} item${filteredItems.length !== 1 ? 's' : ''}`;
+        // Update count with basket emoji
+        countElement.textContent = `🛒 ${filteredItems.length}`;
 
         // Render items
         if (filteredItems.length === 0) {
@@ -167,9 +167,9 @@ function renderGroupedItems(items) {
             return a.localeCompare(b);
         });
 
-        // Add user header
+        // Add user header with basket emoji
         html += `<div class="user-group">`;
-        html += `<div class="user-header">${escapeHtml(userId)}'s List (${userItems.length} items)</div>`;
+        html += `<div class="user-header">${escapeHtml(userId)}'s List 🛒 ${userItems.length}</div>`;
 
         // Add categories for this user
         sortedCategories.forEach(category => {
