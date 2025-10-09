@@ -303,6 +303,28 @@ header h1 {
     color: #f778ba;
 }
 
+/* User Total Footer */
+.user-total {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+}
+
+.total-label {
+    color: #8b949e;
+    font-size: 0.95rem;
+}
+
+.total-price {
+    color: #238636;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
 /* Category Groups */
 .category-group {
     margin-bottom: 12px;
@@ -501,6 +523,13 @@ header h1 {
     font-size: 0.875rem;
     font-weight: 500;
     color: #8b949e;
+    white-space: nowrap;
+}
+
+.item-price {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #238636;
     white-space: nowrap;
 }
 

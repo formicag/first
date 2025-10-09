@@ -147,9 +147,10 @@ def lambda_handler(event, context):
 
         corrected_name = ai_result['correctedName']
         emoji = ai_result['emoji']
+        estimated_price = ai_result['estimatedPrice']
         category = ai_result['category']
 
-        logger.info(f"AI processed: '{item_name}' → '{emoji} {corrected_name}' ({category})")
+        logger.info(f"AI processed: '{item_name}' → '{emoji} {corrected_name}' (£{estimated_price:.2f}, {category})")
 
         # Generate UUID and timestamp
         item_id = str(uuid.uuid4())
@@ -161,6 +162,7 @@ def lambda_handler(event, context):
             'itemId': item_id,
             'itemName': corrected_name,  # Use AI-corrected name
             'emoji': emoji,  # Use AI-selected emoji
+            'estimatedPrice': estimated_price,  # Use AI-estimated price
             'quantity': quantity,
             'category': category,  # Use AI-assigned category
             'bought': False,
@@ -187,6 +189,7 @@ def lambda_handler(event, context):
                     'originalName': item_name,
                     'correctedName': corrected_name,
                     'emoji': emoji,
+                    'estimatedPrice': estimated_price,
                     'wasSpellCorrected': item_name != corrected_name,
                     'category': category
                 }
@@ -261,18 +264,26 @@ TASK 3 - Emoji Selection:
 - Choose ONE emoji that best represents this item
 - Use the most common, recognizable emoji for the item
 - Examples: "Milk" → "🥛", "Bread" → "🍞", "Apples" → "🍎", "Chicken" → "🍗"
+
+TASK 4 - Price Estimation:
+- Estimate the typical price at Sainsbury's UK for this item
+- Consider the quantity mentioned (if any) or assume standard pack size
+- Return price in GBP (pounds) as a decimal number
+- Examples: "Milk" → 1.25, "Bread" → 1.10, "Apples" (per kg) → 2.50
+- Use typical 2024-2025 Sainsbury's pricing
+- For unclear quantities, estimate for a typical single purchase unit
 """
 
     # Add categorization task
     if strict_categories:
         base_prompt += f"""
-TASK 4 - Categorization:
+TASK 5 - Categorization:
 - Categorize into ONE of these UK shopping centre aisles: {categories_str}
 - Use standard UK supermarket terminology
 - Think about where this would be found in a typical Tesco, Sainsbury's, or Asda"""
     else:
         base_prompt += f"""
-TASK 4 - Categorization:
+TASK 5 - Categorization:
 - Categorize into ONE of these UK shopping centre aisles: {categories_str}
 - You may suggest alternative category names if more appropriate"""
 
@@ -281,7 +292,7 @@ TASK 4 - Categorization:
         base_prompt += f"\n\nADDITIONAL INSTRUCTIONS:\n{custom_prompt.strip()}"
 
     base_prompt += """\n\nReturn ONLY valid JSON in this exact format:
-{"correctedName": "Item Name With Proper Capitalization", "emoji": "🥛", "category": "Category Name"}"""
+{"correctedName": "Item Name With Proper Capitalization", "emoji": "🥛", "estimatedPrice": 1.25, "category": "Category Name"}"""
 
     # Prepare request for Claude
     request_body = {
@@ -314,6 +325,7 @@ TASK 4 - Categorization:
             result = json.loads(response_text)
             corrected_name = result.get('correctedName', item_name)
             emoji = result.get('emoji', '🛒')  # Default to shopping cart if no emoji
+            estimated_price = result.get('estimatedPrice', 0.0)  # Default to 0 if no price
             category = result.get('category', 'Uncategorized')
 
             # Validate category is in our list
@@ -321,9 +333,19 @@ TASK 4 - Categorization:
                 logger.warning(f"AI returned invalid category '{category}'. Using 'Uncategorized'.")
                 category = 'Uncategorized'
 
+            # Validate price is a positive number
+            try:
+                estimated_price = float(estimated_price)
+                if estimated_price < 0:
+                    estimated_price = 0.0
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid price '{estimated_price}'. Using 0.0")
+                estimated_price = 0.0
+
             return {
                 'correctedName': corrected_name,
                 'emoji': emoji,
+                'estimatedPrice': estimated_price,
                 'category': category
             }
 
@@ -334,6 +356,7 @@ TASK 4 - Categorization:
             return {
                 'correctedName': corrected_name,
                 'emoji': '🛒',
+                'estimatedPrice': 0.0,
                 'category': 'Uncategorized'
             }
 
@@ -344,5 +367,6 @@ TASK 4 - Categorization:
         return {
             'correctedName': corrected_name,
             'emoji': '🛒',
+            'estimatedPrice': 0.0,
             'category': 'Uncategorized'
         }

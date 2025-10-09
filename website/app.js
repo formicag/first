@@ -201,6 +201,12 @@ function renderGroupedItems(items) {
         const userEmoji = userId === 'Gianluca' ? '👨' : '👩';
         const userColorClass = userId === 'Gianluca' ? 'user-gianluca' : 'user-nicole';
 
+        // Calculate total price for this user
+        const totalPrice = userItems.reduce((sum, item) => {
+            const price = (item.estimatedPrice || 0) * item.quantity;
+            return sum + price;
+        }, 0);
+
         html += `<div class="user-group ${userColorClass}" data-user-id="${escapeHtml(userId)}">`;
         html += `<div class="user-header">`;
         html += `<span class="user-header-name">${userEmoji} ${escapeHtml(userId)}'s List</span>`;
@@ -220,6 +226,12 @@ function renderGroupedItems(items) {
             html += `</div>`;
         });
 
+        // Add total price footer for this user
+        html += `<div class="user-total">`;
+        html += `<span class="total-label">Estimated Total:</span>`;
+        html += `<span class="total-price">£${totalPrice.toFixed(2)}</span>`;
+        html += `</div>`;
+
         html += `</div>`; // Close user-group
     });
 
@@ -232,6 +244,9 @@ function renderGroupedItems(items) {
 function createItemHTML(item) {
     const boughtClass = item.bought ? 'bought' : '';
     const emoji = item.emoji || '🛒';  // Default to shopping cart if no emoji
+    const estimatedPrice = item.estimatedPrice || 0;
+    const totalPrice = estimatedPrice * item.quantity;
+
     return `
         <div class="shopping-item ${boughtClass}"
              data-item-id="${item.itemId}"
@@ -246,6 +261,7 @@ function createItemHTML(item) {
                 <span class="item-emoji">${emoji}</span>
                 <span class="item-name">${escapeHtml(item.itemName)}</span>
                 <span class="item-quantity">Qty: ${item.quantity}</span>
+                <span class="item-price">£${totalPrice.toFixed(2)}</span>
             </div>
             <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
             <button class="btn-delete" data-item-id="${item.itemId}" title="Delete item">🗑️</button>
