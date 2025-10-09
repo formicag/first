@@ -231,6 +231,7 @@ function renderGroupedItems(items) {
  */
 function createItemHTML(item) {
     const boughtClass = item.bought ? 'bought' : '';
+    const emoji = item.emoji || '🛒';  // Default to shopping cart if no emoji
     return `
         <div class="shopping-item ${boughtClass}"
              data-item-id="${item.itemId}"
@@ -242,6 +243,7 @@ function createItemHTML(item) {
                    data-item-id="${item.itemId}"
                    ${item.bought ? 'checked' : ''}>
             <div class="item-details">
+                <span class="item-emoji">${emoji}</span>
                 <span class="item-name">${escapeHtml(item.itemName)}</span>
                 <span class="item-quantity">Qty: ${item.quantity}</span>
             </div>

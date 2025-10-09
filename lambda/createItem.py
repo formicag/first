@@ -146,9 +146,10 @@ def lambda_handler(event, context):
         )
 
         corrected_name = ai_result['correctedName']
+        emoji = ai_result['emoji']
         category = ai_result['category']
 
-        logger.info(f"AI processed: '{item_name}' → '{corrected_name}' ({category})")
+        logger.info(f"AI processed: '{item_name}' → '{emoji} {corrected_name}' ({category})")
 
         # Generate UUID and timestamp
         item_id = str(uuid.uuid4())
@@ -159,6 +160,7 @@ def lambda_handler(event, context):
             'userId': user_id,
             'itemId': item_id,
             'itemName': corrected_name,  # Use AI-corrected name
+            'emoji': emoji,  # Use AI-selected emoji
             'quantity': quantity,
             'category': category,  # Use AI-assigned category
             'bought': False,
@@ -184,6 +186,7 @@ def lambda_handler(event, context):
                 'aiProcessing': {
                     'originalName': item_name,
                     'correctedName': corrected_name,
+                    'emoji': emoji,
                     'wasSpellCorrected': item_name != corrected_name,
                     'category': category
                 }
@@ -253,18 +256,23 @@ TASK 1 - Spelling Correction:
 TASK 2 - Capitalization:
 - Capitalize the FIRST letter of EACH word
 - Examples: "pork chops" → "Pork Chops", "tomato" → "Tomato"
+
+TASK 3 - Emoji Selection:
+- Choose ONE emoji that best represents this item
+- Use the most common, recognizable emoji for the item
+- Examples: "Milk" → "🥛", "Bread" → "🍞", "Apples" → "🍎", "Chicken" → "🍗"
 """
 
     # Add categorization task
     if strict_categories:
         base_prompt += f"""
-TASK 3 - Categorization:
+TASK 4 - Categorization:
 - Categorize into ONE of these UK shopping centre aisles: {categories_str}
 - Use standard UK supermarket terminology
 - Think about where this would be found in a typical Tesco, Sainsbury's, or Asda"""
     else:
         base_prompt += f"""
-TASK 3 - Categorization:
+TASK 4 - Categorization:
 - Categorize into ONE of these UK shopping centre aisles: {categories_str}
 - You may suggest alternative category names if more appropriate"""
 
@@ -273,7 +281,7 @@ TASK 3 - Categorization:
         base_prompt += f"\n\nADDITIONAL INSTRUCTIONS:\n{custom_prompt.strip()}"
 
     base_prompt += """\n\nReturn ONLY valid JSON in this exact format:
-{"correctedName": "Item Name With Proper Capitalization", "category": "Category Name"}"""
+{"correctedName": "Item Name With Proper Capitalization", "emoji": "🥛", "category": "Category Name"}"""
 
     # Prepare request for Claude
     request_body = {
@@ -305,6 +313,7 @@ TASK 3 - Categorization:
         try:
             result = json.loads(response_text)
             corrected_name = result.get('correctedName', item_name)
+            emoji = result.get('emoji', '🛒')  # Default to shopping cart if no emoji
             category = result.get('category', 'Uncategorized')
 
             # Validate category is in our list
@@ -314,6 +323,7 @@ TASK 3 - Categorization:
 
             return {
                 'correctedName': corrected_name,
+                'emoji': emoji,
                 'category': category
             }
 
@@ -323,6 +333,7 @@ TASK 3 - Categorization:
             corrected_name = ' '.join(word.capitalize() for word in item_name.split())
             return {
                 'correctedName': corrected_name,
+                'emoji': '🛒',
                 'category': 'Uncategorized'
             }
 
@@ -332,5 +343,6 @@ TASK 3 - Categorization:
         corrected_name = ' '.join(word.capitalize() for word in item_name.split())
         return {
             'correctedName': corrected_name,
+            'emoji': '🛒',
             'category': 'Uncategorized'
         }

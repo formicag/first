@@ -393,6 +393,12 @@ header h1 {
     flex-shrink: 0;
 }
 
+.item-emoji {
+    font-size: 1.2rem;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
 .item-name {
     font-size: 0.95rem;
     font-weight: 500;
