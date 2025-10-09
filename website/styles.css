@@ -83,15 +83,19 @@ header h1 {
 .list-header h2 {
     font-size: 1.8rem;
     color: #667eea;
+    margin-right: 20px;
 }
 
 .item-count {
-    background: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 /* Add Item Form */
@@ -170,6 +174,13 @@ header h1 {
     transform: translateY(0);
 }
 
+/* Action Buttons Container */
+.action-buttons {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 3px solid #f0f0f0;
+}
+
 .btn-email {
     width: 100%;
     padding: 12px;
@@ -181,7 +192,7 @@ header h1 {
     font-weight: 600;
     cursor: pointer;
     transition: background 0.3s, transform 0.1s;
-    margin-bottom: 25px;
+    margin-bottom: 10px;
 }
 
 .btn-email:hover {
@@ -210,7 +221,7 @@ header h1 {
     font-weight: 600;
     cursor: pointer;
     transition: background 0.3s, transform 0.1s;
-    margin-bottom: 25px;
+    margin-bottom: 10px;
 }
 
 .btn-configure-ai:hover {
@@ -340,6 +351,32 @@ header h1 {
     font-weight: 600;
     color: #333;
     margin-bottom: 4px;
+    cursor: pointer;
+    display: inline-block;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.item-name:hover {
+    background: #f0f0f0;
+}
+
+.item-name.editing {
+    background: white;
+    cursor: text;
+}
+
+.item-name-input {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    border: 2px solid #667eea;
+    border-radius: 4px;
+    padding: 4px 8px;
+    outline: none;
+    width: 100%;
+    max-width: 300px;
 }
 
 .shopping-item.bought .item-name {
@@ -352,10 +389,30 @@ header h1 {
     gap: 15px;
     font-size: 0.9rem;
     color: #666;
+    align-items: center;
 }
 
 .item-quantity {
     font-weight: 600;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.item-quantity:hover {
+    background: #f0f0f0;
+}
+
+.item-quantity-input {
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 2px solid #667eea;
+    border-radius: 4px;
+    padding: 2px 6px;
+    outline: none;
+    width: 60px;
+    text-align: center;
 }
 
 .item-category {

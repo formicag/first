@@ -198,7 +198,11 @@ function createItemHTML(item) {
     const checkedAttr = item.bought ? 'checked' : '';
 
     return `
-        <div class="shopping-item ${boughtClass}" data-item-id="${item.itemId}">
+        <div class="shopping-item ${boughtClass}"
+             data-item-id="${item.itemId}"
+             data-user-id="${escapeHtml(item.userId)}"
+             data-item-name="${escapeHtml(item.itemName)}"
+             data-quantity="${item.quantity}">
             <input
                 type="checkbox"
                 class="item-checkbox"
@@ -206,9 +210,9 @@ function createItemHTML(item) {
                 data-item-id="${item.itemId}"
             >
             <div class="item-details">
-                <div class="item-name">${escapeHtml(item.itemName)}</div>
+                <div class="item-name" data-item-id="${item.itemId}" title="Click to edit">${escapeHtml(item.itemName)}</div>
                 <div class="item-meta">
-                    <span class="item-quantity">Qty: ${item.quantity}</span>
+                    <span class="item-quantity" data-item-id="${item.itemId}" title="Click to edit">Qty: ${item.quantity}</span>
                 </div>
             </div>
             <button
@@ -222,7 +226,7 @@ function createItemHTML(item) {
 }
 
 /**
- * Attach event listeners to checkboxes and delete buttons
+ * Attach event listeners to checkboxes, delete buttons, and editable fields
  */
 function attachItemEventListeners() {
     const itemsContainer = document.getElementById('items-list');
@@ -235,6 +239,18 @@ function attachItemEventListeners() {
     const deleteButtons = itemsContainer.querySelectorAll('.btn-delete');
     deleteButtons.forEach(button => {
         button.addEventListener('click', handleDeleteClick);
+    });
+
+    // Add edit listeners for item names
+    const itemNames = itemsContainer.querySelectorAll('.item-name');
+    itemNames.forEach(nameElement => {
+        nameElement.addEventListener('click', handleItemNameEdit);
+    });
+
+    // Add edit listeners for quantities
+    const quantities = itemsContainer.querySelectorAll('.item-quantity');
+    quantities.forEach(qtyElement => {
+        qtyElement.addEventListener('click', handleQuantityEdit);
     });
 }
 
@@ -545,4 +561,145 @@ function showNotification(message, type = 'success', duration = 3000) {
     setTimeout(() => {
         div.remove();
     }, duration);
+}
+
+/**
+ * Handle item name editing (inline edit)
+ */
+function handleItemNameEdit(event) {
+    const nameElement = event.target;
+    const itemElement = nameElement.closest('.shopping-item');
+    const itemId = nameElement.dataset.itemId;
+    const userId = itemElement.dataset.userId;
+    const currentName = itemElement.dataset.itemName;
+
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'item-name-input';
+    input.value = currentName;
+
+    // Replace name with input
+    nameElement.replaceWith(input);
+    input.focus();
+    input.select();
+
+    // Handle save on blur or enter
+    const saveEdit = async () => {
+        const newName = input.value.trim();
+
+        if (!newName) {
+            // Restore original if empty
+            input.replaceWith(nameElement);
+            return;
+        }
+
+        if (newName === currentName) {
+            // No change, just restore
+            input.replaceWith(nameElement);
+            return;
+        }
+
+        // Update via API
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ itemName: newName })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Reload items to show updated name
+            await loadUserItems();
+            showNotification(`✓ Updated item name to "${newName}"`, 'success', 3000);
+
+        } catch (error) {
+            console.error('Error updating item name:', error);
+            input.replaceWith(nameElement);
+            showNotification('✗ Failed to update item name', 'error', 3000);
+        }
+    };
+
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            input.blur();
+        }
+    });
+}
+
+/**
+ * Handle quantity editing (inline edit)
+ */
+function handleQuantityEdit(event) {
+    const qtyElement = event.target;
+    const itemElement = qtyElement.closest('.shopping-item');
+    const itemId = qtyElement.dataset.itemId;
+    const userId = itemElement.dataset.userId;
+    const currentQty = parseInt(itemElement.dataset.quantity);
+
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'item-quantity-input';
+    input.value = currentQty;
+    input.min = '1';
+
+    // Replace quantity with input
+    qtyElement.replaceWith(input);
+    input.focus();
+    input.select();
+
+    // Handle save on blur or enter
+    const saveEdit = async () => {
+        const newQty = parseInt(input.value);
+
+        if (!newQty || newQty < 1) {
+            // Restore original if invalid
+            input.replaceWith(qtyElement);
+            return;
+        }
+
+        if (newQty === currentQty) {
+            // No change, just restore
+            input.replaceWith(qtyElement);
+            return;
+        }
+
+        // Update via API
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ quantity: newQty })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Reload items to show updated quantity
+            await loadUserItems();
+            showNotification(`✓ Updated quantity to ${newQty}`, 'success', 3000);
+
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            input.replaceWith(qtyElement);
+            showNotification('✗ Failed to update quantity', 'error', 3000);
+        }
+    };
+
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            input.blur();
+        }
+    });
 }
