@@ -20,6 +20,14 @@ Parameters:
     Type: String
     Description: ARN of the DynamoDB table
 
+  ShopHistoryTableName:
+    Type: String
+    Description: Name of the Shop History DynamoDB table
+
+  ShopHistoryTableArn:
+    Type: String
+    Description: ARN of the Shop History DynamoDB table
+
   NotificationEmail:
     Type: String
     Description: Email address for shopping list notifications
@@ -69,6 +77,8 @@ Resources:
                 Resource:
                   - !Ref DynamoDBTableArn
                   - !Sub '${DynamoDBTableArn}/*'
+                  - !Ref ShopHistoryTableArn
+                  - !Sub '${ShopHistoryTableArn}/*'
         # SES access policy
         - PolicyName: SESAccess
           PolicyDocument:
@@ -286,6 +296,34 @@ Resources:
         - Key: ManagedBy
           Value: CloudFormation
 
+  # Lambda Function: Store Shop
+  StoreShopFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-StoreShop'
+      Description: Store today's shop to history
+      Runtime: python3.11
+      Handler: storeShop.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTableName
+          SHOP_HISTORY_TABLE: !Ref ShopHistoryTableName
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
 Outputs:
   CreateItemFunctionArn:
     Description: ARN of CreateItem Lambda function
@@ -328,6 +366,12 @@ Outputs:
     Value: !GetAtt RecalculatePricesFunction.Arn
     Export:
       Name: !Sub '${AWS::StackName}-RecalculatePricesArn'
+
+  StoreShopFunctionArn:
+    Description: ARN of StoreShop Lambda function
+    Value: !GetAtt StoreShopFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-StoreShopArn'
 
   LambdaExecutionRoleArn:
     Description: ARN of Lambda execution role

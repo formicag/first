@@ -73,6 +73,39 @@ Resources:
         - Key: ManagedBy
           Value: CloudFormation
 
+  # DynamoDB Table for Shop History
+  ShopHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-ShopHistory-${Environment}'
+      BillingMode: !Ref BillingMode
+      AttributeDefinitions:
+        - AttributeName: shopId
+          AttributeType: S
+        - AttributeName: shopDate
+          AttributeType: S
+      KeySchema:
+        - AttributeName: shopId
+          KeyType: HASH
+        - AttributeName: shopDate
+          KeyType: RANGE
+      ProvisionedThroughput: !If
+        - UseProvisionedBilling
+        - ReadCapacityUnits: !Ref ReadCapacityUnits
+          WriteCapacityUnits: !Ref WriteCapacityUnits
+        - !Ref AWS::NoValue
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
 Outputs:
   TableName:
     Description: Name of the DynamoDB table
@@ -85,3 +118,15 @@ Outputs:
     Value: !GetAtt ShoppingListTable.Arn
     Export:
       Name: !Sub '${AWS::StackName}-TableArn'
+
+  ShopHistoryTableName:
+    Description: Name of the Shop History DynamoDB table
+    Value: !Ref ShopHistoryTable
+    Export:
+      Name: !Sub '${AWS::StackName}-ShopHistoryTableName'
+
+  ShopHistoryTableArn:
+    Description: ARN of the Shop History DynamoDB table
+    Value: !GetAtt ShopHistoryTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ShopHistoryTableArn'

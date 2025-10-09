@@ -49,6 +49,10 @@ Parameters:
     Type: String
     Description: ARN of RecalculatePrices Lambda function
 
+  StoreShopFunctionArn:
+    Type: String
+    Description: ARN of StoreShop Lambda function
+
 Resources:
   # API Gateway REST API
   RestApi:
@@ -150,6 +154,22 @@ Resources:
       ParentId: !Ref PricesResource
       PathPart: recalculate
 
+  # Resource: /shop
+  ShopResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: shop
+
+  # Resource: /shop/store
+  ShopStoreResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref ShopResource
+      PathPart: store
+
   # Method: POST /items
   CreateItemMethod:
     Type: AWS::ApiGateway::Method
@@ -250,6 +270,20 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RecalculatePricesFunctionArn}/invocations'
 
+  # Method: POST /shop/store
+  StoreShopMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ShopStoreResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StoreShopFunctionArn}/invocations'
+
   # Lambda Permissions
   CreateItemPermission:
     Type: AWS::Lambda::Permission
@@ -307,6 +341,14 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
 
+  StoreShopPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref StoreShopFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
   # API Gateway Deployment
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
@@ -318,6 +360,7 @@ Resources:
       - EmailListMethod
       - CategorizeItemsMethod
       - RecalculatePricesMethod
+      - StoreShopMethod
     Properties:
       RestApiId: !Ref RestApi
       Description: !Sub 'Deployment for ${Environment} environment'

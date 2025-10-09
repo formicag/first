@@ -214,6 +214,34 @@ header h1 {
     transform: none;
 }
 
+.btn-store-shop {
+    width: 100%;
+    padding: 8px 16px;
+    background: #8957e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+}
+
+.btn-store-shop:hover {
+    background: #a371f7;
+}
+
+.btn-store-shop:active {
+    background: #6e40c9;
+}
+
+.btn-store-shop:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .btn-recalculate-prices {
     width: 100%;
     padding: 8px 16px;
@@ -311,15 +339,23 @@ header h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
 }
 
 .user-header-name {
     flex: 1;
 }
 
+.user-header-total {
+    font-size: 0.95rem;
+    color: #238636;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .user-header-count {
-    margin-left: auto;
     color: #58a6ff;
+    white-space: nowrap;
 }
 
 /* User-specific colors */
@@ -329,28 +365,6 @@ header h1 {
 
 .user-nicole .user-header-name {
     color: #f778ba;
-}
-
-/* User Total Footer */
-.user-total {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #30363d;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 600;
-}
-
-.total-label {
-    color: #8b949e;
-    font-size: 0.95rem;
-}
-
-.total-price {
-    color: #238636;
-    font-size: 1.1rem;
-    font-weight: 700;
 }
 
 /* Category Groups */

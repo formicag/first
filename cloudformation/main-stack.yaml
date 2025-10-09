@@ -179,6 +179,8 @@ Resources:
         Environment: !Ref Environment
         DynamoDBTableName: !GetAtt StorageStack.Outputs.TableName
         DynamoDBTableArn: !GetAtt StorageStack.Outputs.TableArn
+        ShopHistoryTableName: !GetAtt StorageStack.Outputs.ShopHistoryTableName
+        ShopHistoryTableArn: !GetAtt StorageStack.Outputs.ShopHistoryTableArn
         NotificationEmail: !Ref NotificationEmail
         LambdaTimeout: !Ref LambdaTimeout
         LambdaMemorySize: !Ref LambdaMemorySize
@@ -210,6 +212,7 @@ Resources:
         EmailListFunctionArn: !GetAtt ComputeStack.Outputs.EmailListFunctionArn
         CategorizeItemsFunctionArn: !GetAtt ComputeStack.Outputs.CategorizeItemsFunctionArn
         RecalculatePricesFunctionArn: !GetAtt ComputeStack.Outputs.RecalculatePricesFunctionArn
+        StoreShopFunctionArn: !GetAtt ComputeStack.Outputs.StoreShopFunctionArn
       Tags:
         - Key: Project
           Value: !Ref ProjectName

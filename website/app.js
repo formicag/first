@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Setup form handlers
     setupFormHandler();
+    setupStoreShopHandler();
     setupEmailButtonHandler();
     setupRecalculatePricesHandler();
     setupAIConfigHandler();
@@ -77,8 +78,13 @@ async function loadUserItems() {
         const allowedUsers = ['Gianluca', 'Nicole'];
         const filteredItems = items.filter(item => allowedUsers.includes(item.userId));
 
-        // Update count with basket emoji
-        countElement.textContent = `🛒 ${filteredItems.length}`;
+        // Calculate combined total for both users
+        const combinedTotal = filteredItems.reduce((sum, item) => {
+            return sum + ((item.estimatedPrice || 0) * item.quantity);
+        }, 0);
+
+        // Update count with combined total and basket emoji
+        countElement.innerHTML = `Est. Tot: £${combinedTotal.toFixed(2)} | 🛒 ${filteredItems.length}`;
 
         // Render items
         if (filteredItems.length === 0) {
@@ -211,6 +217,7 @@ function renderGroupedItems(items) {
         html += `<div class="user-group ${userColorClass}" data-user-id="${escapeHtml(userId)}">`;
         html += `<div class="user-header">`;
         html += `<span class="user-header-name">${userEmoji} ${escapeHtml(userId)}'s List</span>`;
+        html += `<span class="user-header-total">Est. Tot: £${totalPrice.toFixed(2)}</span>`;
         html += `<span class="user-header-count">🛒 ${userItems.length}</span>`;
         html += `</div>`;
 
@@ -226,12 +233,6 @@ function renderGroupedItems(items) {
             html += categoryItems.map(item => createItemHTML(item)).join('');
             html += `</div>`;
         });
-
-        // Add total price footer for this user
-        html += `<div class="user-total">`;
-        html += `<span class="total-label">Estimated Total:</span>`;
-        html += `<span class="total-price">£${totalPrice.toFixed(2)}</span>`;
-        html += `</div>`;
 
         html += `</div>`; // Close user-group
     });
@@ -614,6 +615,51 @@ function setupEmailButtonHandler() {
         } finally {
             button.disabled = false;
             button.textContent = '📧 Email My List';
+        }
+    });
+}
+
+/**
+ * Setup store shop button handler
+ */
+function setupStoreShopHandler() {
+    const button = document.getElementById('store-shop-btn');
+
+    button.addEventListener('click', async () => {
+        if (!confirm('Store today\'s shop to history? This will save a snapshot of all current items with their details, quantities, prices, and categories.')) {
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = '📦 Storing...';
+
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/shop/store`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            showNotification(
+                `✓ Shop stored successfully! ${data.shop.totalItems} items, £${data.shop.totalPrice.toFixed(2)} total.`,
+                'success',
+                5000
+            );
+
+        } catch (error) {
+            console.error('Error storing shop:', error);
+            showNotification('✗ Failed to store shop. Please try again.', 'error', 5000);
+
+        } finally {
+            button.disabled = false;
+            button.textContent = '📦 Store Today\'s Shop';
         }
     });
 }
