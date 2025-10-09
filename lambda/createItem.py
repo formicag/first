@@ -177,6 +177,19 @@ def lambda_handler(event, context):
         logger.info(f"Successfully created item {item_id}")
 
         # Return success response with AI processing details
+        # Convert Decimal to float for JSON serialization
+        response_item = {
+            'userId': item['userId'],
+            'itemId': item['itemId'],
+            'itemName': item['itemName'],
+            'emoji': item['emoji'],
+            'estimatedPrice': float(item['estimatedPrice']),
+            'quantity': item['quantity'],
+            'category': item['category'],
+            'bought': item['bought'],
+            'addedDate': item['addedDate']
+        }
+
         return {
             'statusCode': 201,
             'headers': {
@@ -185,7 +198,7 @@ def lambda_handler(event, context):
             },
             'body': json.dumps({
                 'message': 'Item created successfully',
-                'item': item,
+                'item': response_item,
                 'aiProcessing': {
                     'originalName': item_name,
                     'correctedName': corrected_name,
