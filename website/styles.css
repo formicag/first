@@ -119,18 +119,33 @@ header h1 {
     margin-bottom: 10px;
 }
 
-.add-item-form input {
+.add-item-form label {
+    display: block;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.add-item-form input,
+.add-item-form select {
     width: 100%;
     padding: 12px;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.3s;
+    background: white;
 }
 
-.add-item-form input:focus {
+.add-item-form input:focus,
+.add-item-form select:focus {
     outline: none;
     border-color: #667eea;
+}
+
+.add-item-form select {
+    cursor: pointer;
 }
 
 .btn-add {

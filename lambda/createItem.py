@@ -58,14 +58,16 @@ def lambda_handler(event, context):
             }
         """
 
-        # Bypass mode: Use default TestUser
-        user_id = "TestUser"
-
         # Parse input
         if isinstance(event.get('body'), str):
             body = json.loads(event['body'])
         else:
             body = event
+
+        # Get userId from request body (allows frontend to specify which user's list)
+        user_id = body.get('userId', 'TestUser')
+
+        logger.info(f"Creating item for userId: {user_id}")
 
         # Validate required fields
         required_fields = ['itemName', 'quantity']

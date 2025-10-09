@@ -71,11 +71,15 @@ async function loadUserItems() {
         const data = await response.json();
         const items = data.items || [];
 
+        // Filter to only Gianluca and Nicole for count
+        const allowedUsers = ['Gianluca', 'Nicole'];
+        const filteredItems = items.filter(item => allowedUsers.includes(item.userId));
+
         // Update count
-        countElement.textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+        countElement.textContent = `${filteredItems.length} item${filteredItems.length !== 1 ? 's' : ''}`;
 
         // Render items
-        if (items.length === 0) {
+        if (filteredItems.length === 0) {
             itemsContainer.innerHTML = '<div class="empty-state">No items yet. Add your first item!</div>';
         } else {
             itemsContainer.innerHTML = renderGroupedItems(items);
@@ -122,12 +126,16 @@ async function fetchWithAuth(url, options = {}) {
  */
 function renderGroupedItems(items) {
     // BYPASS MODE: Group by user first, then by category
-    // For single-user mode, remove the user grouping
+    // Only show Gianluca and Nicole's lists
+
+    // Filter to only include Gianluca and Nicole
+    const allowedUsers = ['Gianluca', 'Nicole'];
+    const filteredItems = items.filter(item => allowedUsers.includes(item.userId));
 
     // Group by userId first
     const groupedByUser = {};
 
-    items.forEach(item => {
+    filteredItems.forEach(item => {
         const userId = item.userId || 'Unknown User';
         if (!groupedByUser[userId]) {
             groupedByUser[userId] = [];
@@ -135,8 +143,8 @@ function renderGroupedItems(items) {
         groupedByUser[userId].push(item);
     });
 
-    // Sort users alphabetically
-    const sortedUsers = Object.keys(groupedByUser).sort();
+    // Sort users: Gianluca first, then Nicole
+    const sortedUsers = allowedUsers.filter(user => groupedByUser[user]);
 
     let html = '';
 
@@ -304,6 +312,7 @@ function setupFormHandler() {
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
+        const selectedUser = document.getElementById('user-select').value;
         const itemName = document.getElementById('item-name').value.trim();
         const quantity = parseInt(document.getElementById('quantity').value);
         const category = document.getElementById('category').value.trim();
@@ -315,6 +324,7 @@ function setupFormHandler() {
 
         try {
             const payload = {
+                userId: selectedUser,
                 itemName,
                 quantity
             };
@@ -337,6 +347,8 @@ function setupFormHandler() {
 
             form.reset();
             document.getElementById('quantity').value = '1';
+            // Reset user selector to default (Gianluca)
+            document.getElementById('user-select').value = 'Gianluca';
 
             await loadUserItems();
 
