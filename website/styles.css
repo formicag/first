@@ -375,6 +375,75 @@ header h1 {
     white-space: nowrap;
 }
 
+/* Edit Form Inline Editing */
+.item-edit-form {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.edit-name-input {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    border: 2px solid #667eea;
+    border-radius: 4px;
+    padding: 4px 8px;
+    outline: none;
+    flex: 1;
+    min-width: 100px;
+}
+
+.edit-qty-input {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    border: 2px solid #667eea;
+    border-radius: 4px;
+    padding: 4px 8px;
+    outline: none;
+    width: 70px;
+    text-align: center;
+}
+
+.btn-save-edit,
+.btn-cancel-edit {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px;
+    transition: transform 0.1s, opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-save-edit {
+    color: #10b981;
+    opacity: 0.8;
+}
+
+.btn-save-edit:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.btn-cancel-edit {
+    color: #ff4757;
+    opacity: 0.7;
+}
+
+.btn-cancel-edit:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.btn-save-edit:active,
+.btn-cancel-edit:active {
+    transform: scale(0.9);
+}
+
 .item-name-input {
     font-size: 1rem;
     font-weight: 600;
@@ -703,8 +772,26 @@ header h1 {
         padding: 4px 8px;
     }
 
-    .item-checkbox {
-        width: 18px;
-        height: 18px;
+    /* Mobile edit form */
+    .item-edit-form {
+        gap: 6px;
+    }
+
+    .edit-name-input {
+        font-size: 0.95rem;
+        padding: 4px 6px;
+        min-width: 80px;
+    }
+
+    .edit-qty-input {
+        font-size: 0.85rem;
+        padding: 4px 6px;
+        width: 60px;
+    }
+
+    .btn-save-edit,
+    .btn-cancel-edit {
+        font-size: 1.1rem;
+        padding: 2px;
     }
 }

@@ -194,105 +194,141 @@ function renderGroupedItems(items) {
  * Create HTML for a shopping item
  */
 function createItemHTML(item) {
-    const boughtClass = item.bought ? 'bought' : '';
-    const checkedAttr = item.bought ? 'checked' : '';
-
     return `
-        <div class="shopping-item ${boughtClass}"
+        <div class="shopping-item"
              data-item-id="${item.itemId}"
              data-user-id="${escapeHtml(item.userId)}"
              data-item-name="${escapeHtml(item.itemName)}"
              data-quantity="${item.quantity}">
-            <input
-                type="checkbox"
-                class="item-checkbox"
-                ${checkedAttr}
-                data-item-id="${item.itemId}"
-            >
             <div class="item-details">
-                <div class="item-name-container">
-                    <span class="item-name" data-item-id="${item.itemId}">${escapeHtml(item.itemName)}</span>
-                    <button class="btn-edit btn-edit-name" data-item-id="${item.itemId}" title="Edit name">✏️</button>
-                </div>
-                <div class="item-quantity-container">
-                    <span class="item-quantity" data-item-id="${item.itemId}">Qty: ${item.quantity}</span>
-                    <button class="btn-edit btn-edit-qty" data-item-id="${item.itemId}" title="Edit quantity">✏️</button>
-                </div>
+                <span class="item-name">${escapeHtml(item.itemName)}</span>
+                <span class="item-quantity">Qty: ${item.quantity}</span>
             </div>
-            <button
-                class="btn-delete"
-                data-item-id="${item.itemId}"
-            >
-                🗑️
-            </button>
+            <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
+            <button class="btn-delete" data-item-id="${item.itemId}" title="Delete item">🗑️</button>
         </div>
     `;
 }
 
 /**
- * Attach event listeners to checkboxes, delete buttons, and edit buttons
+ * Attach event listeners to delete and edit buttons
  */
 function attachItemEventListeners() {
     const itemsContainer = document.getElementById('items-list');
-
-    const checkboxes = itemsContainer.querySelectorAll('.item-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', handleCheckboxChange);
-    });
 
     const deleteButtons = itemsContainer.querySelectorAll('.btn-delete');
     deleteButtons.forEach(button => {
         button.addEventListener('click', handleDeleteClick);
     });
 
-    // Add edit listeners for item name buttons
-    const editNameButtons = itemsContainer.querySelectorAll('.btn-edit-name');
-    editNameButtons.forEach(button => {
-        button.addEventListener('click', handleItemNameEditClick);
-    });
-
-    // Add edit listeners for quantity buttons
-    const editQtyButtons = itemsContainer.querySelectorAll('.btn-edit-qty');
-    editQtyButtons.forEach(button => {
-        button.addEventListener('click', handleQuantityEditClick);
+    // Add edit listeners for edit buttons
+    const editButtons = itemsContainer.querySelectorAll('.btn-edit');
+    editButtons.forEach(button => {
+        button.addEventListener('click', handleItemEdit);
     });
 }
 
 /**
- * Handle checkbox change (mark item as bought/unbought)
+ * Handle item edit - edit both name and quantity
  */
-async function handleCheckboxChange(event) {
-    const checkbox = event.target;
-    const itemElement = checkbox.closest('.shopping-item');
-    const itemId = checkbox.dataset.itemId;
-    const bought = checkbox.checked;
+function handleItemEdit(event) {
+    const button = event.target;
+    const itemElement = button.closest('.shopping-item');
+    const itemId = button.dataset.itemId;
     const userId = itemElement.dataset.userId;
+    const currentName = itemElement.dataset.itemName;
+    const currentQty = parseInt(itemElement.dataset.quantity);
 
-    try {
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ bought })
-        });
+    const itemDetails = itemElement.querySelector('.item-details');
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    // Create edit form
+    const editForm = document.createElement('div');
+    editForm.className = 'item-edit-form';
+    editForm.innerHTML = `
+        <input type="text" class="edit-name-input" value="${escapeHtml(currentName)}" placeholder="Item name">
+        <input type="number" class="edit-qty-input" value="${currentQty}" min="1" placeholder="Qty">
+        <button class="btn-save-edit">✓</button>
+        <button class="btn-cancel-edit">✕</button>
+    `;
+
+    // Replace item details with edit form
+    itemDetails.replaceWith(editForm);
+    button.style.display = 'none';
+
+    const nameInput = editForm.querySelector('.edit-name-input');
+    const qtyInput = editForm.querySelector('.edit-qty-input');
+    const saveBtn = editForm.querySelector('.btn-save-edit');
+    const cancelBtn = editForm.querySelector('.btn-cancel-edit');
+
+    nameInput.focus();
+    nameInput.select();
+
+    // Handle save
+    const saveEdit = async () => {
+        const newName = nameInput.value.trim();
+        const newQty = parseInt(qtyInput.value);
+
+        if (!newName || !newQty || newQty < 1) {
+            showNotification('Please enter valid item name and quantity', 'error', 3000);
+            return;
         }
 
-        const itemElement = checkbox.closest('.shopping-item');
-        if (bought) {
-            itemElement.classList.add('bought');
-        } else {
-            itemElement.classList.remove('bought');
+        if (newName === currentName && newQty === currentQty) {
+            // No changes, just restore
+            await loadUserItems();
+            return;
         }
 
-    } catch (error) {
-        console.error('Error updating item:', error);
-        checkbox.checked = !bought;
-        alert('Failed to update item. Please try again.');
-    }
+        try {
+            const updates = {};
+            if (newName !== currentName) updates.itemName = newName;
+            if (newQty !== currentQty) updates.quantity = newQty;
+
+            const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updates)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            await loadUserItems();
+            showNotification('✓ Item updated', 'success', 2000);
+
+        } catch (error) {
+            console.error('Error updating item:', error);
+            showNotification('✗ Failed to update item', 'error', 3000);
+            await loadUserItems();
+        }
+    };
+
+    // Handle cancel
+    const cancelEdit = () => {
+        loadUserItems();
+    };
+
+    saveBtn.addEventListener('click', saveEdit);
+    cancelBtn.addEventListener('click', cancelEdit);
+
+    nameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            saveEdit();
+        } else if (e.key === 'Escape') {
+            cancelEdit();
+        }
+    });
+
+    qtyInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            saveEdit();
+        } else if (e.key === 'Escape') {
+            cancelEdit();
+        }
+    });
 }
 
 /**
@@ -564,147 +600,4 @@ function showNotification(message, type = 'success', duration = 3000) {
     setTimeout(() => {
         div.remove();
     }, duration);
-}
-
-/**
- * Handle item name edit button click
- */
-function handleItemNameEditClick(event) {
-    const button = event.target;
-    const itemElement = button.closest('.shopping-item');
-    const itemId = button.dataset.itemId;
-    const userId = itemElement.dataset.userId;
-    const currentName = itemElement.dataset.itemName;
-    const nameElement = itemElement.querySelector('.item-name');
-
-    // Create input element
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'item-name-input';
-    input.value = currentName;
-
-    // Replace name with input
-    nameElement.replaceWith(input);
-    input.focus();
-    input.select();
-
-    // Handle save on blur or enter
-    const saveEdit = async () => {
-        const newName = input.value.trim();
-
-        if (!newName) {
-            // Restore original if empty
-            input.replaceWith(nameElement);
-            return;
-        }
-
-        if (newName === currentName) {
-            // No change, just restore
-            input.replaceWith(nameElement);
-            return;
-        }
-
-        // Update via API
-        try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ itemName: newName })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            // Reload items to show updated name
-            await loadUserItems();
-            showNotification(`✓ Updated item name to "${newName}"`, 'success', 3000);
-
-        } catch (error) {
-            console.error('Error updating item name:', error);
-            input.replaceWith(nameElement);
-            showNotification('✗ Failed to update item name', 'error', 3000);
-        }
-    };
-
-    input.addEventListener('blur', saveEdit);
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            input.blur();
-        }
-    });
-}
-
-/**
- * Handle quantity edit button click
- */
-function handleQuantityEditClick(event) {
-    const button = event.target;
-    const itemElement = button.closest('.shopping-item');
-    const itemId = button.dataset.itemId;
-    const userId = itemElement.dataset.userId;
-    const currentQty = parseInt(itemElement.dataset.quantity);
-    const qtyElement = itemElement.querySelector('.item-quantity');
-
-    // Create input element
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.className = 'item-quantity-input';
-    input.value = currentQty;
-    input.min = '1';
-
-    // Replace quantity with input
-    qtyElement.replaceWith(input);
-    input.focus();
-    input.select();
-
-    // Handle save on blur or enter
-    const saveEdit = async () => {
-        const newQty = parseInt(input.value);
-
-        if (!newQty || newQty < 1) {
-            // Restore original if invalid
-            input.replaceWith(qtyElement);
-            return;
-        }
-
-        if (newQty === currentQty) {
-            // No change, just restore
-            input.replaceWith(qtyElement);
-            return;
-        }
-
-        // Update via API
-        try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ quantity: newQty })
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            // Reload items to show updated quantity
-            await loadUserItems();
-            showNotification(`✓ Updated quantity to ${newQty}`, 'success', 3000);
-
-        } catch (error) {
-            console.error('Error updating quantity:', error);
-            input.replaceWith(qtyElement);
-            showNotification('✗ Failed to update quantity', 'error', 3000);
-        }
-    };
-
-    input.addEventListener('blur', saveEdit);
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            input.blur();
-        }
-    });
 }
