@@ -9,6 +9,7 @@ import json
 import boto3
 import uuid
 from datetime import datetime
+from decimal import Decimal
 import logging
 
 # Configure logging
@@ -162,7 +163,7 @@ def lambda_handler(event, context):
             'itemId': item_id,
             'itemName': corrected_name,  # Use AI-corrected name
             'emoji': emoji,  # Use AI-selected emoji
-            'estimatedPrice': estimated_price,  # Use AI-estimated price
+            'estimatedPrice': Decimal(str(estimated_price)),  # Convert to Decimal for DynamoDB
             'quantity': quantity,
             'category': category,  # Use AI-assigned category
             'bought': False,

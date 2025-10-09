@@ -9,6 +9,7 @@ import json
 import boto3
 import uuid
 from datetime import datetime
+from decimal import Decimal
 import logging
 
 # Configure logging
@@ -69,28 +70,39 @@ def lambda_handler(event, context):
         allowed_users = ['Gianluca', 'Nicole']
         filtered_items = [item for item in items if item.get('userId') in allowed_users]
 
-        # Calculate totals
+        # Calculate totals - handle both Decimal and float types
         total_items = len(filtered_items)
-        total_price = sum((item.get('estimatedPrice', 0) * item.get('quantity', 1)) for item in filtered_items)
+        total_price = Decimal('0')
+        for item in filtered_items:
+            price = item.get('estimatedPrice', 0)
+            if isinstance(price, Decimal):
+                total_price += price * item.get('quantity', 1)
+            else:
+                total_price += Decimal(str(price)) * item.get('quantity', 1)
 
         # Create shop history record
         shop_record = {
             'shopId': shop_id,
             'shopDate': shop_date,
             'totalItems': total_items,
-            'totalPrice': round(total_price, 2),
+            'totalPrice': total_price,
             'items': []
         }
 
         # Add each item with all details
         for item in filtered_items:
+            price = item.get('estimatedPrice', 0)
+            # Convert to Decimal if not already
+            if not isinstance(price, Decimal):
+                price = Decimal(str(price)) if price else Decimal('0')
+
             shop_item = {
                 'userId': item.get('userId', ''),
                 'itemId': item.get('itemId', ''),
                 'itemName': item.get('itemName', ''),
                 'emoji': item.get('emoji', '🛒'),
                 'quantity': item.get('quantity', 1),
-                'estimatedPrice': item.get('estimatedPrice', 0.0),
+                'estimatedPrice': price,
                 'category': item.get('category', 'Uncategorized'),
                 'bought': item.get('bought', False)
             }
@@ -113,7 +125,7 @@ def lambda_handler(event, context):
                     'shopId': shop_id,
                     'shopDate': shop_date,
                     'totalItems': total_items,
-                    'totalPrice': round(total_price, 2)
+                    'totalPrice': float(total_price)
                 }
             })
         }

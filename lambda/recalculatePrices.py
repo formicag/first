@@ -7,6 +7,7 @@ current Sainsbury's prices, updating the estimatedPrice field.
 
 import json
 import boto3
+from decimal import Decimal
 import logging
 
 # Configure logging
@@ -83,7 +84,7 @@ def lambda_handler(event, context):
             logger.info(f"Updating {item_name}: £{new_price:.2f}")
 
             try:
-                # Update item in DynamoDB
+                # Update item in DynamoDB - convert to Decimal
                 table.update_item(
                     Key={
                         'userId': user_id,
@@ -91,7 +92,7 @@ def lambda_handler(event, context):
                     },
                     UpdateExpression='SET estimatedPrice = :price',
                     ExpressionAttributeValues={
-                        ':price': new_price
+                        ':price': Decimal(str(new_price))
                     }
                 )
                 updated_count += 1
