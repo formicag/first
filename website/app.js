@@ -48,10 +48,12 @@ async function loadUserItems() {
     try {
         itemsContainer.innerHTML = '<div class="loading">Loading items...</div>';
 
-        // BYPASS MODE: Load all items (no userId in path)
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/all?bought=all`);
+        // BYPASS MODE: Load all items (use any userId - Lambda scans all)
+        // The Lambda function has been modified to scan all items regardless of userId
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/TestUser?bought=all`);
 
         // COGNITO MODE (commented out):
+        // const userId = getUserId();
         // const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}?bought=all`);
 
         if (!response.ok) {

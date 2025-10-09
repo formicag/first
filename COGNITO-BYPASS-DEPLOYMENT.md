@@ -41,9 +41,9 @@ This deployment disabled Cognito authentication throughout the shopping list app
 **app.js** (`website/app.js`)
 - Removed authentication redirect to login page (lines 6-13)
 - Changed page title to "All Shopping Lists" (line 19)
-- Updated API call to fetch all items without userId filter (line 49)
-- Removed Authorization header from API requests (line 101)
-- Updated rendering to group items by user first, then by category (lines 115-178)
+- Updated API call to fetch from `/items/TestUser?bought=all` (line 53)
+- Removed Authorization header from API requests (line 117)
+- Updated rendering to group items by user first, then by category (lines 123-183)
 
 #### 4. Styling Updated
 
@@ -53,12 +53,37 @@ This deployment disabled Cognito authentication throughout the shopping list app
 
 ## Deployment Process
 
-### Prerequisites
+### Method 1: Automatic Deployment (Recommended)
+
+**GitHub Actions CI/CD is now configured** - simply push changes to the `main` branch:
+
+```bash
+git add .
+git commit -m "Description of changes"
+git push origin main
+```
+
+The GitHub Actions workflow automatically:
+1. Packages all Lambda functions
+2. Deploys Lambda functions to AWS
+3. Syncs website files to S3
+4. Invalidates CloudFront cache
+
+**Workflow file**: `.github/workflows/deploy.yml`
+**View deployments**: https://github.com/formicag/first/actions
+
+See [CI-CD-SETUP.md](CI-CD-SETUP.md) for full setup details.
+
+### Method 2: Manual Deployment
+
+If you need to deploy manually without GitHub Actions:
+
+#### Prerequisites
 - AWS CLI configured with SSO profile `AdministratorAccess-016164185850`
 - Active AWS SSO session via Google Workspace IdP
 - Access to account `016164185850` in region `eu-west-1`
 
-### Step 1: AWS SSO Login
+#### Step 1: AWS SSO Login
 
 ```bash
 aws sso login --profile AdministratorAccess-016164185850
@@ -70,7 +95,7 @@ aws sso login --profile AdministratorAccess-016164185850
 - User: `gf@gianlucaformica.net`
 - Identity Provider: Google Workspace
 
-### Step 2: Package Lambda Functions
+#### Step 2: Package Lambda Functions
 
 ```bash
 cd /Users/gianlucaformica/Projects/first/lambda
@@ -86,7 +111,7 @@ zip createItem.zip createItem.py cognito_helper.py
 - `getItems.zip` created (2,183 bytes)
 - `createItem.zip` created (2,240 bytes)
 
-### Step 3: Update Lambda Functions on AWS
+#### Step 3: Update Lambda Functions on AWS
 
 ```bash
 # Update getItems function
@@ -112,7 +137,7 @@ aws lambda update-function-code \
 - `ShoppingList-EmailList` (not modified)
 - `ShoppingList-CategorizeItems` (not modified)
 
-### Step 4: Upload Updated Website Files to S3
+#### Step 4: Upload Updated Website Files to S3
 
 ```bash
 cd /Users/gianlucaformica/Projects/first/website
@@ -130,7 +155,7 @@ aws s3 sync . s3://shoppinglist.gianlucaformica.net/ \
 - `index.html` (unchanged)
 - `login.html` (unchanged)
 
-### Step 5: Invalidate CloudFront Cache
+#### Step 5: Invalidate CloudFront Cache
 
 ```bash
 aws cloudfront create-invalidation \
@@ -165,9 +190,13 @@ aws cloudfront create-invalidation \
 
 ### API Behavior
 
-**GET /items/all?bought=all**
-- Returns all items from all users (table scan)
+All API Gateway methods have **authorization disabled** (set to NONE).
+
+**GET /items/{userId}?bought=all**
+- Returns all items from all users (DynamoDB table scan)
+- userId path parameter is ignored (Lambda scans entire table)
 - No authentication required
+- Example: `GET /items/TestUser?bought=all`
 
 **POST /items**
 - Creates items under "TestUser"
@@ -181,33 +210,62 @@ aws cloudfront create-invalidation \
 - Deletes items (userId from path parameter)
 - No authentication required
 
+**POST /email/{userId}**
+- Sends email with shopping list
+- No authentication required
+
+**POST /categorize/{userId}**
+- Auto-categorizes items using AI
+- No authentication required
+
 ## Re-enabling Cognito (Future)
 
-To re-enable Cognito authentication, uncomment the following code blocks:
+To re-enable Cognito authentication, you'll need to:
 
-### Backend
-- `lambda/getItems.py` lines 47-64 (Cognito user extraction)
-- `lambda/getItems.py` lines 88-95 (Query by userId instead of scan)
-- `lambda/createItem.py` lines 43-59 (Cognito user extraction)
+### 1. Backend Changes
+- `lambda/getItems.py` - Uncomment Cognito user extraction (lines 47-64)
+- `lambda/getItems.py` - Change from table.scan() to table.query() with userId (lines 88-95)
+- `lambda/createItem.py` - Uncomment Cognito user extraction (lines 43-59)
 
-### Frontend
-- `website/auth.js` lines 7-60 (Cognito authentication functions)
-- `website/auth.js` lines 118-130 (Token validation)
-- `website/auth.js` lines 142-185 (Token refresh)
-- `website/app.js` lines 8-12 (Authentication redirect)
-- `website/app.js` lines 50-55 (401 error handling)
-- `website/app.js` lines 81-98 (Authorization header)
+### 2. Frontend Changes
+- `website/auth.js` - Uncomment all Cognito authentication functions (lines 7-60, 118-130, 142-185)
+- `website/app.js` - Uncomment authentication redirect (lines 8-12)
+- `website/app.js` - Uncomment 401 error handling (lines 50-55)
+- `website/app.js` - Uncomment Authorization header (lines 81-98)
 
-Then redeploy using the same steps above.
+### 3. API Gateway Changes
+Re-enable Cognito authorizer on all methods:
+```bash
+# For each method, update the authorization type back to COGNITO_USER_POOLS
+aws apigateway update-method \
+  --rest-api-id 01mmfw29n0 \
+  --resource-id <resource-id> \
+  --http-method <method> \
+  --patch-operations op=replace,path=/authorizationType,value=COGNITO_USER_POOLS \
+  --profile AdministratorAccess-016164185850
+
+# Deploy the changes
+aws apigateway create-deployment \
+  --rest-api-id 01mmfw29n0 \
+  --stage-name dev \
+  --description "Re-enable Cognito authorization" \
+  --profile AdministratorAccess-016164185850
+```
+
+### 4. Redeploy
+Push changes to GitHub (automatic deployment) or use manual deployment steps above.
 
 ## Infrastructure Details
 
 ### AWS Resources
 - **DynamoDB Table:** `ShoppingList`
-- **API Gateway:** `https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev`
+- **API Gateway:** `https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev` (API ID: `01mmfw29n0`)
 - **Cognito User Pool:** `eu-west-1_IennWZZNL` (bypassed but still exists)
-- **CloudFront Domain:** `shoppinglist.gianlucaformica.net`
-- **IAM Role:** `ShoppingListLambdaRole`
+- **CloudFront Distribution:** `E2G8S9GOXLBFEZ`
+- **CloudFront Domain:** `https://shoppinglist.gianlucaformica.net`
+- **S3 Bucket:** `shoppinglist.gianlucaformica.net`
+- **IAM Role (Lambda):** `ShoppingListLambdaRole`
+- **IAM Role (GitHub Actions):** `GitHubActionsDeployRole`
 
 ### Lambda Function Configuration
 - **Runtime:** Python 3.11
@@ -253,12 +311,60 @@ Re-authenticate:
 aws sso login --profile AdministratorAccess-016164185850
 ```
 
+## Deployment History
+
+### October 9, 2025 - API Gateway Authorization Fix
+**Issue**: App was loading but couldn't fetch data from DynamoDB - API returned "Unauthorized"
+
+**Root Cause**: API Gateway methods still had Cognito authorization enabled despite Lambda functions being updated
+
+**Fix Applied**:
+1. Disabled Cognito authorizer on all 6 API Gateway methods (set to NONE):
+   - GET `/items/{userId}`
+   - POST `/items`
+   - PUT `/items/{userId}/{itemId}`
+   - DELETE `/items/{userId}/{itemId}`
+   - POST `/email/{userId}`
+   - POST `/categorize/{userId}`
+
+2. Fixed frontend API endpoint from `/items/all` to `/items/TestUser?bought=all`
+
+3. Deployed API Gateway changes: `aws apigateway create-deployment --rest-api-id 01mmfw29n0 --stage-name dev`
+
+**Result**: App now successfully loads all 15 items from DynamoDB and displays them grouped by user
+
+### October 9, 2025 - GitHub Actions CI/CD Setup
+**Setup**: Configured automated deployment pipeline using GitHub Actions with AWS OIDC
+
+**Components Created**:
+1. GitHub Actions workflow (`.github/workflows/deploy.yml`)
+2. AWS OIDC provider for GitHub
+3. IAM role `GitHubActionsDeployRole` with deployment permissions
+4. GitHub repository secret `AWS_ROLE_ARN`
+
+**Features**:
+- Automatic deployment on push to `main` branch
+- Triggers when files in `lambda/`, `website/`, or workflow change
+- No stored AWS credentials (uses OIDC for secure authentication)
+- Deploys Lambda functions, S3 files, and invalidates CloudFront
+
+**First Deployment**: Successfully deployed in 23 seconds after adding `id-token: write` permission
+
+### October 9, 2025 - Initial Cognito Bypass
+**Purpose**: Disable Cognito authentication to display all users' shopping lists on one page
+
+**Changes Made**:
+- Modified Lambda functions (`getItems.py`, `createItem.py`)
+- Updated frontend (`auth.js`, `app.js`, `styles.css`)
+- Deployed via manual AWS CLI commands
+
 ## Notes
 
 - **Default Browser Issue**: Encountered issue with Comet browser; switching to Chrome resolved SSO login
 - **Function Naming**: Lambda functions use pattern `ShoppingList-{FunctionName}` (no environment suffix)
-- **API Endpoint**: Still uses Cognito authorizer configuration, but authorization header is not sent
+- **API Gateway Authorization**: Completely disabled (NONE) - no authentication required
 - **Data Persistence**: All existing user data (Gianluca, Nicole, etc.) remains in DynamoDB
+- **CI/CD**: All deployments now automated via GitHub Actions
 
 ## References
 

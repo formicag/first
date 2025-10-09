@@ -450,13 +450,70 @@ First 1000 invalidation paths per month are free!
 
 ---
 
-## Next Steps
+## Setup Status
 
-1. ✅ Review the GitHub Actions workflow: `.github/workflows/deploy.yml`
-2. ⬜ Set up IAM role using the commands above
-3. ⬜ Add `AWS_ROLE_ARN` to GitHub Secrets
-4. ⬜ Test deployment by pushing to main branch
-5. ⬜ (Optional) Set up development environment
+1. ✅ GitHub Actions workflow created: `.github/workflows/deploy.yml`
+2. ✅ AWS OIDC provider created for GitHub Actions
+3. ✅ IAM role `GitHubActionsDeployRole` created with deployment permissions
+4. ✅ `AWS_ROLE_ARN` added to GitHub Secrets
+5. ✅ Workflow tested and verified - first deployment completed in 23 seconds
+6. ✅ All deployments now automated on push to `main` branch
+
+## Current Deployment Process
+
+Simply push your changes to the `main` branch:
+
+```bash
+git add .
+git commit -m "Your commit message"
+git push origin main
+```
+
+The GitHub Actions workflow will automatically:
+1. Package all Lambda functions with dependencies
+2. Deploy Lambda functions to AWS
+3. Sync website files to S3 bucket
+4. Invalidate CloudFront cache
+
+**View deployment status**: https://github.com/formicag/first/actions
+
+## What's Deployed
+
+The workflow deploys changes when files are modified in:
+- `lambda/**` - All Lambda function code
+- `website/**` - All frontend files (HTML, CSS, JS)
+- `.github/workflows/deploy.yml` - The workflow itself
+
+**Deployment targets**:
+- Lambda functions: `ShoppingList-CreateItem`, `ShoppingList-GetItems`, `ShoppingList-UpdateItem`, `ShoppingList-DeleteItem`, `ShoppingList-EmailList`, `ShoppingList-CategorizeItems`
+- S3 bucket: `s3://shoppinglist.gianlucaformica.net/`
+- CloudFront distribution: `E2G8S9GOXLBFEZ`
+
+## Troubleshooting Completed Issues
+
+### Issue 1: Missing OIDC Permission (RESOLVED)
+**Problem**: Initial workflow failed with "Credentials could not be loaded"
+
+**Solution**: Added `id-token: write` permission to workflow:
+```yaml
+permissions:
+  id-token: write   # Required for OIDC authentication
+  contents: read    # Required to checkout code
+```
+
+### Issue 2: GitHub CLI Workflow Scope (RESOLVED)
+**Problem**: Couldn't push workflow file without 'workflow' scope
+
+**Solution**:
+1. Switched from SSH to HTTPS remote
+2. Used `gh auth login -s workflow` to add workflow scope
+3. Ran `gh auth setup-git` to configure git authentication
+
+## Next Steps (Optional)
+
+1. ⬜ Set up development environment (see multi-environment section above)
+2. ⬜ Add automated testing before deployment
+3. ⬜ Set up Slack/email notifications for deployment status
 
 ---
 
