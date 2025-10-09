@@ -7,10 +7,10 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     min-height: 100vh;
     padding: 20px;
-    color: #333;
+    color: #e0e0e0;
 }
 
 .container {
@@ -65,10 +65,10 @@ header h1 {
 
 /* List Section */
 .list-section {
-    background: white;
+    background: #0f3460;
     border-radius: 15px;
     padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .list-header {
@@ -77,30 +77,30 @@ header h1 {
     align-items: center;
     margin-bottom: 25px;
     padding-bottom: 15px;
-    border-bottom: 3px solid #f0f0f0;
+    border-bottom: 3px solid #2d3e50;
 }
 
 .list-header h2 {
     font-size: 1.8rem;
-    color: #667eea;
+    color: #4ecca3;
     margin-right: 20px;
 }
 
 .item-count {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #4ecca3 0%, #3ba886 100%);
+    color: #0f3460;
     padding: 8px 20px;
     border-radius: 25px;
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.5px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(78, 204, 163, 0.4);
+    border: 2px solid rgba(78, 204, 163, 0.3);
 }
 
 /* Add Item Form */
 .add-item-form {
-    background: #f8f9ff;
+    background: #1a2332;
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 25px;
@@ -108,7 +108,7 @@ header h1 {
 
 .add-item-form h3 {
     font-size: 1.1rem;
-    color: #667eea;
+    color: #4ecca3;
     margin-bottom: 15px;
 }
 
@@ -126,7 +126,7 @@ header h1 {
 .add-item-form label {
     display: block;
     font-weight: 600;
-    color: #667eea;
+    color: #4ecca3;
     margin-bottom: 8px;
     font-size: 0.95rem;
 }
@@ -135,17 +135,18 @@ header h1 {
 .add-item-form select {
     width: 100%;
     padding: 12px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #2d3e50;
     border-radius: 8px;
     font-size: 1rem;
     transition: border-color 0.3s;
-    background: white;
+    background: #0f3460;
+    color: #e0e0e0;
 }
 
 .add-item-form input:focus,
 .add-item-form select:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #4ecca3;
 }
 
 .add-item-form select {
@@ -155,8 +156,8 @@ header h1 {
 .btn-add {
     width: 100%;
     padding: 12px;
-    background: #667eea;
-    color: white;
+    background: #4ecca3;
+    color: #0f3460;
     border: none;
     border-radius: 8px;
     font-size: 1rem;
@@ -166,7 +167,7 @@ header h1 {
 }
 
 .btn-add:hover {
-    background: #5568d3;
+    background: #3ba886;
     transform: translateY(-2px);
 }
 
@@ -178,7 +179,7 @@ header h1 {
 .action-buttons {
     margin-top: 30px;
     padding-top: 25px;
-    border-top: 3px solid #f0f0f0;
+    border-top: 3px solid #2d3e50;
 }
 
 .btn-email {
@@ -263,18 +264,18 @@ header h1 {
 .user-group {
     margin-bottom: 35px;
     padding: 20px;
-    background: #f8f9ff;
+    background: #1a2332;
     border-radius: 12px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #2d3e50;
 }
 
 .user-header {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #764ba2;
+    color: #4ecca3;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 3px solid #667eea;
+    border-bottom: 3px solid #4ecca3;
 }
 
 /* Category Groups */
@@ -285,23 +286,23 @@ header h1 {
 .category-header {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #667eea;
+    color: #4ecca3;
     margin-bottom: 12px;
     padding-bottom: 8px;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid #2d3e50;
 }
 
 .loading {
     text-align: center;
     padding: 40px;
-    color: #999;
+    color: #7c8a9d;
     font-style: italic;
 }
 
 .empty-state {
     text-align: center;
     padding: 40px;
-    color: #999;
+    color: #7c8a9d;
 }
 
 .empty-state::before {
@@ -317,21 +318,21 @@ header h1 {
     align-items: center;
     gap: 10px;
     padding: 12px;
-    background: white;
-    border: 2px solid #f0f0f0;
+    background: #0a2540;
+    border: 2px solid #2d3e50;
     border-radius: 10px;
     margin-bottom: 10px;
     transition: all 0.3s;
 }
 
 .shopping-item:hover {
-    border-color: #667eea;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    border-color: #4ecca3;
+    box-shadow: 0 4px 12px rgba(78, 204, 163, 0.2);
 }
 
 .shopping-item.bought {
-    background: #f8f8f8;
-    opacity: 0.7;
+    background: #1a2332;
+    opacity: 0.6;
 }
 
 .item-checkbox {
@@ -368,7 +369,7 @@ header h1 {
 .item-name {
     font-size: 1rem;
     font-weight: 600;
-    color: #333;
+    color: #e0e0e0;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -387,25 +388,27 @@ header h1 {
 .edit-name-input {
     font-size: 1rem;
     font-weight: 600;
-    color: #333;
-    border: 2px solid #667eea;
+    color: #e0e0e0;
+    border: 2px solid #4ecca3;
     border-radius: 4px;
     padding: 4px 8px;
     outline: none;
     flex: 1;
     min-width: 100px;
+    background: #0f3460;
 }
 
 .edit-qty-input {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #333;
-    border: 2px solid #667eea;
+    color: #e0e0e0;
+    border: 2px solid #4ecca3;
     border-radius: 4px;
     padding: 4px 8px;
     outline: none;
     width: 70px;
     text-align: center;
+    background: #0f3460;
 }
 
 .btn-save-edit,
@@ -447,35 +450,38 @@ header h1 {
 .item-name-input {
     font-size: 1rem;
     font-weight: 600;
-    color: #333;
-    border: 2px solid #667eea;
+    color: #e0e0e0;
+    border: 2px solid #4ecca3;
     border-radius: 4px;
     padding: 4px 8px;
     outline: none;
     width: 100%;
+    background: #0f3460;
 }
 
 .shopping-item.bought .item-name {
     text-decoration: line-through;
-    color: #999;
+    color: #7c8a9d;
 }
 
 .item-quantity {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #666;
+    color: #b0b8c3;
     white-space: nowrap;
 }
 
 .item-quantity-input {
     font-size: 0.9rem;
     font-weight: 600;
-    border: 2px solid #667eea;
+    border: 2px solid #4ecca3;
     border-radius: 4px;
     padding: 4px 8px;
     outline: none;
     width: 70px;
     text-align: center;
+    background: #0f3460;
+    color: #e0e0e0;
 }
 
 /* Edit Buttons */
@@ -500,13 +506,13 @@ header h1 {
 }
 
 .item-category {
-    color: #667eea;
+    color: #4ecca3;
 }
 
 .btn-delete {
     padding: 6px 10px;
     background: transparent;
-    color: #ff4757;
+    color: #ff6b6b;
     border: none;
     border-radius: 6px;
     font-size: 1.2rem;
@@ -518,7 +524,7 @@ header h1 {
 
 .btn-delete:hover {
     opacity: 1;
-    background: #fff0f0;
+    background: rgba(255, 107, 107, 0.1);
     transform: scale(1.1);
 }
 
@@ -528,7 +534,7 @@ header h1 {
 
 /* Error Message */
 .error-message {
-    background: #ff4757;
+    background: #c23616;
     color: white;
     padding: 15px;
     border-radius: 8px;
@@ -544,7 +550,7 @@ header h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.85);
     z-index: 1000;
     justify-content: center;
     align-items: center;
@@ -557,7 +563,7 @@ header h1 {
 }
 
 .modal-content {
-    background: white;
+    background: #0f3460;
     padding: 30px;
     border-radius: 15px;
     max-width: 600px;
@@ -565,8 +571,9 @@ header h1 {
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
     animation: slideInModal 0.3s ease-out;
+    border: 2px solid #2d3e50;
 }
 
 @keyframes slideInModal {
@@ -586,23 +593,23 @@ header h1 {
     right: 20px;
     font-size: 2rem;
     font-weight: bold;
-    color: #999;
+    color: #7c8a9d;
     cursor: pointer;
     transition: color 0.3s;
 }
 
 .modal-close:hover {
-    color: #333;
+    color: #e0e0e0;
 }
 
 .modal-content h2 {
-    color: #667eea;
+    color: #4ecca3;
     margin-bottom: 15px;
     font-size: 1.5rem;
 }
 
 .modal-description {
-    color: #666;
+    color: #b0b8c3;
     margin-bottom: 20px;
     line-height: 1.6;
 }
@@ -610,42 +617,45 @@ header h1 {
 .modal-content textarea {
     width: 100%;
     padding: 12px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid #2d3e50;
     border-radius: 8px;
     font-size: 1rem;
     font-family: inherit;
     resize: vertical;
     transition: border-color 0.3s;
+    background: #0a2540;
+    color: #e0e0e0;
 }
 
 .modal-content textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #4ecca3;
 }
 
 .character-count {
     text-align: right;
     font-size: 0.85rem;
-    color: #666;
+    color: #b0b8c3;
     margin-top: 5px;
 }
 
 .prompt-examples {
-    background: #f8f9ff;
+    background: #1a2332;
     padding: 15px;
     border-radius: 8px;
     margin: 20px 0;
+    border: 1px solid #2d3e50;
 }
 
 .prompt-examples strong {
-    color: #667eea;
+    color: #4ecca3;
     display: block;
     margin-bottom: 10px;
 }
 
 .prompt-examples ul {
     margin-left: 20px;
-    color: #666;
+    color: #b0b8c3;
 }
 
 .prompt-examples li {
@@ -682,12 +692,12 @@ header h1 {
 }
 
 .btn-reset {
-    background: #f3f4f6;
-    color: #666;
+    background: #2d3e50;
+    color: #b0b8c3;
 }
 
 .btn-reset:hover {
-    background: #e5e7eb;
+    background: #3a4f66;
     transform: translateY(-2px);
 }
 

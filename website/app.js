@@ -194,12 +194,17 @@ function renderGroupedItems(items) {
  * Create HTML for a shopping item
  */
 function createItemHTML(item) {
+    const boughtClass = item.bought ? 'bought' : '';
     return `
-        <div class="shopping-item"
+        <div class="shopping-item ${boughtClass}"
              data-item-id="${item.itemId}"
              data-user-id="${escapeHtml(item.userId)}"
              data-item-name="${escapeHtml(item.itemName)}"
              data-quantity="${item.quantity}">
+            <input type="checkbox"
+                   class="item-checkbox"
+                   data-item-id="${item.itemId}"
+                   ${item.bought ? 'checked' : ''}>
             <div class="item-details">
                 <span class="item-name">${escapeHtml(item.itemName)}</span>
                 <span class="item-quantity">Qty: ${item.quantity}</span>
@@ -211,10 +216,16 @@ function createItemHTML(item) {
 }
 
 /**
- * Attach event listeners to delete and edit buttons
+ * Attach event listeners to checkboxes, delete and edit buttons
  */
 function attachItemEventListeners() {
     const itemsContainer = document.getElementById('items-list');
+
+    // Checkbox listeners
+    const checkboxes = itemsContainer.querySelectorAll('.item-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', handleCheckboxChange);
+    });
 
     const deleteButtons = itemsContainer.querySelectorAll('.btn-delete');
     deleteButtons.forEach(button => {
@@ -226,6 +237,43 @@ function attachItemEventListeners() {
     editButtons.forEach(button => {
         button.addEventListener('click', handleItemEdit);
     });
+}
+
+/**
+ * Handle checkbox change (mark as bought/unbought)
+ */
+async function handleCheckboxChange(event) {
+    const checkbox = event.target;
+    const itemElement = checkbox.closest('.shopping-item');
+    const itemId = checkbox.dataset.itemId;
+    const userId = itemElement.dataset.userId;
+    const bought = checkbox.checked;
+
+    try {
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ bought })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Update UI
+        if (bought) {
+            itemElement.classList.add('bought');
+        } else {
+            itemElement.classList.remove('bought');
+        }
+
+    } catch (error) {
+        console.error('Error updating item:', error);
+        checkbox.checked = !bought; // Revert checkbox
+        showNotification('✗ Failed to update item', 'error', 3000);
+    }
 }
 
 /**
