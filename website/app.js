@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup form handlers
     setupFormHandler();
     setupEmailButtonHandler();
-    setupCategorizeButtonHandler();
+    setupAIConfigHandler();
 
     // Setup logout button
     document.getElementById('logout-btn').addEventListener('click', logout);
@@ -315,23 +315,28 @@ function setupFormHandler() {
         const selectedUser = document.getElementById('user-select').value;
         const itemName = document.getElementById('item-name').value.trim();
         const quantity = parseInt(document.getElementById('quantity').value);
-        const category = document.getElementById('category').value.trim();
 
         if (!itemName || quantity < 1) {
             alert('Please enter a valid item name and quantity.');
             return;
         }
 
+        // Show loading state
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = '🤖 AI Processing...';
+
         try {
+            // Get custom AI prompt from localStorage
+            const customPrompt = localStorage.getItem('customAIPrompt') || '';
+
             const payload = {
                 userId: selectedUser,
                 itemName,
-                quantity
+                quantity,
+                customPrompt  // Send custom prompt to Lambda
             };
-
-            if (category) {
-                payload.category = category;
-            }
 
             const response = await fetchWithAuth(`${API_BASE_URL}/items`, {
                 method: 'POST',
@@ -345,6 +350,26 @@ function setupFormHandler() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
+            const data = await response.json();
+
+            // Show AI processing feedback
+            if (data.aiProcessing) {
+                const ai = data.aiProcessing;
+                if (ai.wasSpellCorrected) {
+                    showNotification(
+                        `✓ Added "${ai.correctedName}" (corrected from "${ai.originalName}") to ${ai.category}`,
+                        'success',
+                        5000
+                    );
+                } else {
+                    showNotification(
+                        `✓ Added "${ai.correctedName}" to ${ai.category}`,
+                        'success',
+                        3000
+                    );
+                }
+            }
+
             form.reset();
             document.getElementById('quantity').value = '1';
             // Reset user selector to default (Gianluca)
@@ -354,7 +379,10 @@ function setupFormHandler() {
 
         } catch (error) {
             console.error('Error adding item:', error);
-            alert('Failed to add item. Please try again.');
+            showNotification('✗ Failed to add item. Please try again.', 'error', 5000);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = originalButtonText;
         }
     });
 }
@@ -427,71 +455,88 @@ function setupEmailButtonHandler() {
 }
 
 /**
- * Setup categorize button handler
+ * Setup AI configuration handler
  */
-function setupCategorizeButtonHandler() {
-    const button = document.getElementById('categorize-btn');
+function setupAIConfigHandler() {
+    const button = document.getElementById('configure-ai-btn');
+    const modal = document.getElementById('ai-config-modal');
+    const closeBtn = document.getElementById('modal-close');
+    const textarea = document.getElementById('custom-prompt');
+    const charCount = document.getElementById('char-count');
+    const saveBtn = document.getElementById('save-prompt-btn');
+    const resetBtn = document.getElementById('reset-prompt-btn');
 
-    button.addEventListener('click', async () => {
-        const itemsContainer = document.getElementById('items-list');
-        const userId = getUserId();
+    // Load saved prompt on page load
+    const savedPrompt = localStorage.getItem('customAIPrompt') || '';
+    textarea.value = savedPrompt;
+    updateCharCount();
 
-        const existingMessages = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
-        existingMessages.forEach(msg => msg.remove());
+    // Open modal
+    button.addEventListener('click', () => {
+        modal.style.display = 'flex';
+    });
 
-        button.disabled = true;
-        button.textContent = '🤖 Categorizing...';
+    // Close modal
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
 
-        try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/categorize/${userId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            let message = `✓ Categorized ${data.categorizedCount || 0} items using AI!`;
-
-            if (data.spellingCorrectedCount > 0) {
-                const corrections = data.spellingCorrections || [];
-                const correctionsList = corrections
-                    .map(c => `'${c.original}' → '${c.corrected}'`)
-                    .join(', ');
-                message += ` Corrected spelling for: ${correctionsList}`;
-            }
-
-            const successDiv = document.createElement('div');
-            successDiv.className = 'success-message';
-            successDiv.textContent = message;
-            itemsContainer.parentElement.insertBefore(successDiv, itemsContainer);
-
-            await loadUserItems();
-
-            setTimeout(() => {
-                successDiv.remove();
-            }, 8000);
-
-        } catch (error) {
-            console.error('Error categorizing items:', error);
-
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.textContent = '✗ Failed to categorize items. Please try again.';
-            itemsContainer.parentElement.insertBefore(errorDiv, itemsContainer);
-
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 5000);
-
-        } finally {
-            button.disabled = false;
-            button.textContent = '🤖 Auto-Categorize Items';
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
         }
     });
+
+    // Character count
+    textarea.addEventListener('input', updateCharCount);
+
+    function updateCharCount() {
+        const count = textarea.value.length;
+        charCount.textContent = `${count} / 500 characters`;
+        if (count > 500) {
+            charCount.style.color = '#ff4757';
+            textarea.value = textarea.value.substring(0, 500);
+        } else {
+            charCount.style.color = '#666';
+        }
+    }
+
+    // Save prompt
+    saveBtn.addEventListener('click', () => {
+        const prompt = textarea.value.trim();
+        localStorage.setItem('customAIPrompt', prompt);
+        showNotification('✓ AI instructions saved successfully!', 'success', 3000);
+        modal.style.display = 'none';
+    });
+
+    // Reset prompt
+    resetBtn.addEventListener('click', () => {
+        if (confirm('Reset AI instructions to default? This will remove your custom instructions.')) {
+            localStorage.removeItem('customAIPrompt');
+            textarea.value = '';
+            updateCharCount();
+            showNotification('✓ AI instructions reset to default', 'success', 3000);
+        }
+    });
+}
+
+/**
+ * Show notification message
+ */
+function showNotification(message, type = 'success', duration = 3000) {
+    const itemsContainer = document.getElementById('items-list');
+
+    // Remove existing notifications
+    const existingNotifications = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
+    existingNotifications.forEach(msg => msg.remove());
+
+    const div = document.createElement('div');
+    div.className = type === 'success' ? 'success-message' : 'error-message';
+    div.textContent = message;
+    itemsContainer.parentElement.insertBefore(div, itemsContainer);
+
+    setTimeout(() => {
+        div.remove();
+    }, duration);
 }

@@ -47,13 +47,49 @@
                     📧 Email My List
                 </button>
 
-                <button class="btn-categorize" id="categorize-btn">
-                    🤖 Auto-Categorize Items
+                <button class="btn-configure-ai" id="configure-ai-btn">
+                    ⚙️ Configure AI Prompt
                 </button>
 
                 <div class="items-list" id="items-list">
                     <div class="loading">Loading items...</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Configuration Modal -->
+    <div id="ai-config-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" id="modal-close">&times;</span>
+            <h2>⚙️ Configure AI Prompt</h2>
+            <p class="modal-description">
+                Add custom instructions to guide the AI when categorizing and spell-checking your shopping items.
+                The AI automatically corrects spelling, capitalizes first letters, and assigns UK supermarket categories.
+            </p>
+
+            <div class="form-group">
+                <label for="custom-prompt">Additional AI Instructions:</label>
+                <textarea
+                    id="custom-prompt"
+                    rows="6"
+                    placeholder="Example: Always categorize eggs as 'Dairy & Eggs' instead of 'Fresh Produce'. Treat gluten-free items specially..."
+                ></textarea>
+                <div class="character-count" id="char-count">0 / 500 characters</div>
+            </div>
+
+            <div class="prompt-examples">
+                <strong>Examples:</strong>
+                <ul>
+                    <li>"Always put organic items in their specific categories, not a general 'Organic' category"</li>
+                    <li>"Categorize gluten-free bread as 'Bakery & Bread', not 'Health & Beauty'"</li>
+                    <li>"For brand-specific items, focus on the product type rather than the brand"</li>
+                </ul>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-save" id="save-prompt-btn">💾 Save Instructions</button>
+                <button class="btn-reset" id="reset-prompt-btn">🔄 Reset to Default</button>
             </div>
         </div>
     </div>
