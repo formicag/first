@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup form handlers
     setupFormHandler();
     setupEmailButtonHandler();
+    setupRecalculatePricesHandler();
     setupAIConfigHandler();
     setupUserDropdownHandler();
 
@@ -613,6 +614,54 @@ function setupEmailButtonHandler() {
         } finally {
             button.disabled = false;
             button.textContent = '📧 Email My List';
+        }
+    });
+}
+
+/**
+ * Setup recalculate prices button handler
+ */
+function setupRecalculatePricesHandler() {
+    const button = document.getElementById('recalculate-prices-btn');
+
+    button.addEventListener('click', async () => {
+        if (!confirm('Recalculate prices for all items using current Sainsbury\'s estimates? This will update ALL items in the database.')) {
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = '🤖 AI Recalculating...';
+
+        try {
+            const response = await fetchWithAuth(`${API_BASE_URL}/prices/recalculate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Reload items to show new prices
+            await loadUserItems();
+
+            showNotification(
+                `✓ Price recalculation complete! Updated ${data.updatedCount} items.`,
+                'success',
+                5000
+            );
+
+        } catch (error) {
+            console.error('Error recalculating prices:', error);
+            showNotification('✗ Failed to recalculate prices. Please try again.', 'error', 5000);
+
+        } finally {
+            button.disabled = false;
+            button.textContent = '💷 Recalculate All Prices';
         }
     });
 }

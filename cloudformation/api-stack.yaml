@@ -45,6 +45,10 @@ Parameters:
     Type: String
     Description: ARN of CategorizeItems Lambda function
 
+  RecalculatePricesFunctionArn:
+    Type: String
+    Description: ARN of RecalculatePrices Lambda function
+
 Resources:
   # API Gateway REST API
   RestApi:
@@ -129,6 +133,22 @@ Resources:
       RestApiId: !Ref RestApi
       ParentId: !Ref CategorizeResource
       PathPart: '{userId}'
+
+  # Resource: /prices
+  PricesResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: prices
+
+  # Resource: /prices/recalculate
+  PricesRecalculateResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref PricesResource
+      PathPart: recalculate
 
   # Method: POST /items
   CreateItemMethod:
@@ -216,6 +236,20 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${CategorizeItemsFunctionArn}/invocations'
 
+  # Method: POST /prices/recalculate
+  RecalculatePricesMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref PricesRecalculateResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RecalculatePricesFunctionArn}/invocations'
+
   # Lambda Permissions
   CreateItemPermission:
     Type: AWS::Lambda::Permission
@@ -265,6 +299,14 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
 
+  RecalculatePricesPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref RecalculatePricesFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
   # API Gateway Deployment
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
@@ -275,6 +317,7 @@ Resources:
       - DeleteItemMethod
       - EmailListMethod
       - CategorizeItemsMethod
+      - RecalculatePricesMethod
     Properties:
       RestApiId: !Ref RestApi
       Description: !Sub 'Deployment for ${Environment} environment'

@@ -259,6 +259,33 @@ Resources:
         - Key: ManagedBy
           Value: CloudFormation
 
+  # Lambda Function: Recalculate Prices
+  RecalculatePricesFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-RecalculatePrices'
+      Description: Recalculate prices for all shopping list items using AI
+      Runtime: python3.11
+      Handler: recalculatePrices.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 120
+      MemorySize: 512
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTableName
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
 Outputs:
   CreateItemFunctionArn:
     Description: ARN of CreateItem Lambda function
@@ -295,6 +322,12 @@ Outputs:
     Value: !GetAtt CategorizeItemsFunction.Arn
     Export:
       Name: !Sub '${AWS::StackName}-CategorizeItemsArn'
+
+  RecalculatePricesFunctionArn:
+    Description: ARN of RecalculatePrices Lambda function
+    Value: !GetAtt RecalculatePricesFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-RecalculatePricesArn'
 
   LambdaExecutionRoleArn:
     Description: ARN of Lambda execution role

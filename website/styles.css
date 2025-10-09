@@ -214,6 +214,34 @@ header h1 {
     transform: none;
 }
 
+.btn-recalculate-prices {
+    width: 100%;
+    padding: 8px 16px;
+    background: #238636;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+}
+
+.btn-recalculate-prices:hover {
+    background: #2ea043;
+}
+
+.btn-recalculate-prices:active {
+    background: #1a7f37;
+}
+
+.btn-recalculate-prices:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .btn-configure-ai {
     width: 100%;
     padding: 8px 16px;

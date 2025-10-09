@@ -209,6 +209,7 @@ Resources:
         DeleteItemFunctionArn: !GetAtt ComputeStack.Outputs.DeleteItemFunctionArn
         EmailListFunctionArn: !GetAtt ComputeStack.Outputs.EmailListFunctionArn
         CategorizeItemsFunctionArn: !GetAtt ComputeStack.Outputs.CategorizeItemsFunctionArn
+        RecalculatePricesFunctionArn: !GetAtt ComputeStack.Outputs.RecalculatePricesFunctionArn
       Tags:
         - Key: Project
           Value: !Ref ProjectName
