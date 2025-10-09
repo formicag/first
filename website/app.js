@@ -122,6 +122,19 @@ async function fetchWithAuth(url, options = {}) {
 }
 
 /**
+ * Detect which user is currently editing an item
+ */
+function detectCurrentlyEditingUser() {
+    const editForm = document.querySelector('.item-edit-form');
+    if (!editForm) return null;
+
+    const itemElement = editForm.closest('.shopping-item');
+    if (!itemElement) return null;
+
+    return itemElement.dataset.userId;
+}
+
+/**
  * Group items by user, then by category, and render them
  */
 function renderGroupedItems(items) {
@@ -143,8 +156,20 @@ function renderGroupedItems(items) {
         groupedByUser[userId].push(item);
     });
 
-    // Sort users: Gianluca first, then Nicole
-    const sortedUsers = allowedUsers.filter(user => groupedByUser[user]);
+    // Detect which user is currently editing (has an open edit form)
+    const currentlyEditingUser = detectCurrentlyEditingUser();
+
+    // Sort users: Put currently editing user first, otherwise Gianluca first, then Nicole
+    let sortedUsers = allowedUsers.filter(user => groupedByUser[user]);
+
+    if (currentlyEditingUser) {
+        // Move the editing user to the front
+        sortedUsers = sortedUsers.sort((a, b) => {
+            if (a === currentlyEditingUser) return -1;
+            if (b === currentlyEditingUser) return 1;
+            return allowedUsers.indexOf(a) - allowedUsers.indexOf(b);
+        });
+    }
 
     let html = '';
 
@@ -167,9 +192,12 @@ function renderGroupedItems(items) {
             return a.localeCompare(b);
         });
 
-        // Add user header with basket emoji
-        html += `<div class="user-group">`;
-        html += `<div class="user-header">${escapeHtml(userId)}'s List 🛒 ${userItems.length}</div>`;
+        // Add user header with basket emoji right-aligned
+        html += `<div class="user-group" data-user-id="${escapeHtml(userId)}">`;
+        html += `<div class="user-header">`;
+        html += `<span class="user-header-name">${escapeHtml(userId)}'s List</span>`;
+        html += `<span class="user-header-count">🛒 ${userItems.length}</span>`;
+        html += `</div>`;
 
         // Add categories for this user
         sortedCategories.forEach(category => {

@@ -95,6 +95,7 @@ header h1 {
     padding: 4px 8px;
     font-size: 1.1rem;
     font-weight: 600;
+    margin-left: auto;
 }
 
 /* Add Item Form */
@@ -279,6 +280,18 @@ header h1 {
     margin-bottom: 12px;
     padding-bottom: 8px;
     border-bottom: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-header-name {
+    flex: 1;
+}
+
+.user-header-count {
+    margin-left: auto;
+    color: #58a6ff;
 }
 
 /* Category Groups */
