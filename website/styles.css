@@ -315,8 +315,8 @@ header h1 {
 .shopping-item {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 15px;
+    gap: 10px;
+    padding: 12px;
     background: white;
     border: 2px solid #f0f0f0;
     border-radius: 10px;
@@ -335,8 +335,8 @@ header h1 {
 }
 
 .item-checkbox {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     cursor: pointer;
     flex-shrink: 0;
 }
@@ -344,31 +344,39 @@ header h1 {
 .item-details {
     flex: 1;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.item-name-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 120px;
+}
+
+.item-quantity-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 .item-name {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #333;
-    margin-bottom: 4px;
-    cursor: pointer;
-    display: inline-block;
-    padding: 2px 4px;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.item-name:hover {
-    background: #f0f0f0;
-}
-
-.item-name.editing {
-    background: white;
-    cursor: text;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .item-name-input {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #333;
     border: 2px solid #667eea;
@@ -376,7 +384,6 @@ header h1 {
     padding: 4px 8px;
     outline: none;
     width: 100%;
-    max-width: 300px;
 }
 
 .shopping-item.bought .item-name {
@@ -384,24 +391,11 @@ header h1 {
     color: #999;
 }
 
-.item-meta {
-    display: flex;
-    gap: 15px;
-    font-size: 0.9rem;
-    color: #666;
-    align-items: center;
-}
-
 .item-quantity {
+    font-size: 0.9rem;
     font-weight: 600;
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.item-quantity:hover {
-    background: #f0f0f0;
+    color: #666;
+    white-space: nowrap;
 }
 
 .item-quantity-input {
@@ -409,10 +403,31 @@ header h1 {
     font-weight: 600;
     border: 2px solid #667eea;
     border-radius: 4px;
-    padding: 2px 6px;
+    padding: 4px 8px;
     outline: none;
-    width: 60px;
+    width: 70px;
     text-align: center;
+}
+
+/* Edit Buttons */
+.btn-edit {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.1s;
+    flex-shrink: 0;
+}
+
+.btn-edit:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.btn-edit:active {
+    transform: scale(0.95);
 }
 
 .item-category {
@@ -420,25 +435,26 @@ header h1 {
 }
 
 .btn-delete {
-    padding: 8px 16px;
-    background: #ff4757;
-    color: white;
+    padding: 6px 10px;
+    background: transparent;
+    color: #ff4757;
     border: none;
     border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 1.2rem;
     cursor: pointer;
-    transition: background 0.3s, transform 0.1s;
+    transition: background 0.2s, transform 0.1s;
     flex-shrink: 0;
+    opacity: 0.7;
 }
 
 .btn-delete:hover {
-    background: #e84051;
-    transform: translateY(-2px);
+    opacity: 1;
+    background: #fff0f0;
+    transform: scale(1.1);
 }
 
 .btn-delete:active {
-    transform: translateY(0);
+    transform: scale(0.95);
 }
 
 /* Error Message */
@@ -651,12 +667,44 @@ header h1 {
         grid-template-columns: 80px 1fr;
     }
 
-    .item-meta {
-        flex-direction: column;
-        gap: 5px;
-    }
-
     .modal-actions {
         flex-direction: column;
+    }
+
+    /* Mobile-optimized item layout */
+    .shopping-item {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .item-details {
+        gap: 10px;
+    }
+
+    .item-name-container {
+        min-width: 100px;
+    }
+
+    .item-name {
+        font-size: 0.95rem;
+    }
+
+    .item-quantity {
+        font-size: 0.85rem;
+    }
+
+    .btn-edit {
+        font-size: 0.9rem;
+        padding: 2px;
+    }
+
+    .btn-delete {
+        font-size: 1.1rem;
+        padding: 4px 8px;
+    }
+
+    .item-checkbox {
+        width: 18px;
+        height: 18px;
     }
 }

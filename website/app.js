@@ -210,23 +210,27 @@ function createItemHTML(item) {
                 data-item-id="${item.itemId}"
             >
             <div class="item-details">
-                <div class="item-name" data-item-id="${item.itemId}" title="Click to edit">${escapeHtml(item.itemName)}</div>
-                <div class="item-meta">
-                    <span class="item-quantity" data-item-id="${item.itemId}" title="Click to edit">Qty: ${item.quantity}</span>
+                <div class="item-name-container">
+                    <span class="item-name" data-item-id="${item.itemId}">${escapeHtml(item.itemName)}</span>
+                    <button class="btn-edit btn-edit-name" data-item-id="${item.itemId}" title="Edit name">✏️</button>
+                </div>
+                <div class="item-quantity-container">
+                    <span class="item-quantity" data-item-id="${item.itemId}">Qty: ${item.quantity}</span>
+                    <button class="btn-edit btn-edit-qty" data-item-id="${item.itemId}" title="Edit quantity">✏️</button>
                 </div>
             </div>
             <button
                 class="btn-delete"
                 data-item-id="${item.itemId}"
             >
-                Delete
+                🗑️
             </button>
         </div>
     `;
 }
 
 /**
- * Attach event listeners to checkboxes, delete buttons, and editable fields
+ * Attach event listeners to checkboxes, delete buttons, and edit buttons
  */
 function attachItemEventListeners() {
     const itemsContainer = document.getElementById('items-list');
@@ -241,16 +245,16 @@ function attachItemEventListeners() {
         button.addEventListener('click', handleDeleteClick);
     });
 
-    // Add edit listeners for item names
-    const itemNames = itemsContainer.querySelectorAll('.item-name');
-    itemNames.forEach(nameElement => {
-        nameElement.addEventListener('click', handleItemNameEdit);
+    // Add edit listeners for item name buttons
+    const editNameButtons = itemsContainer.querySelectorAll('.btn-edit-name');
+    editNameButtons.forEach(button => {
+        button.addEventListener('click', handleItemNameEditClick);
     });
 
-    // Add edit listeners for quantities
-    const quantities = itemsContainer.querySelectorAll('.item-quantity');
-    quantities.forEach(qtyElement => {
-        qtyElement.addEventListener('click', handleQuantityEdit);
+    // Add edit listeners for quantity buttons
+    const editQtyButtons = itemsContainer.querySelectorAll('.btn-edit-qty');
+    editQtyButtons.forEach(button => {
+        button.addEventListener('click', handleQuantityEditClick);
     });
 }
 
@@ -563,14 +567,15 @@ function showNotification(message, type = 'success', duration = 3000) {
 }
 
 /**
- * Handle item name editing (inline edit)
+ * Handle item name edit button click
  */
-function handleItemNameEdit(event) {
-    const nameElement = event.target;
-    const itemElement = nameElement.closest('.shopping-item');
-    const itemId = nameElement.dataset.itemId;
+function handleItemNameEditClick(event) {
+    const button = event.target;
+    const itemElement = button.closest('.shopping-item');
+    const itemId = button.dataset.itemId;
     const userId = itemElement.dataset.userId;
     const currentName = itemElement.dataset.itemName;
+    const nameElement = itemElement.querySelector('.item-name');
 
     // Create input element
     const input = document.createElement('input');
@@ -633,14 +638,15 @@ function handleItemNameEdit(event) {
 }
 
 /**
- * Handle quantity editing (inline edit)
+ * Handle quantity edit button click
  */
-function handleQuantityEdit(event) {
-    const qtyElement = event.target;
-    const itemElement = qtyElement.closest('.shopping-item');
-    const itemId = qtyElement.dataset.itemId;
+function handleQuantityEditClick(event) {
+    const button = event.target;
+    const itemElement = button.closest('.shopping-item');
+    const itemId = button.dataset.itemId;
     const userId = itemElement.dataset.userId;
     const currentQty = parseInt(itemElement.dataset.quantity);
+    const qtyElement = itemElement.querySelector('.item-quantity');
 
     // Create input element
     const input = document.createElement('input');
