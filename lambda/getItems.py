@@ -31,11 +31,10 @@ class DecimalEncoder(json.JSONEncoder):
 
 def lambda_handler(event, context):
     """
-    Retrieve shopping list items for a user.
+    Retrieve shopping list items for all users (Cognito bypass mode).
 
     Expected input (JSON):
     {
-        "userId": "Gianluca",
         "boughtFilter": "all"  // optional: "true", "false", or "all" (default)
     }
 
@@ -43,6 +42,9 @@ def lambda_handler(event, context):
         dict: Response with status code and list of items
     """
     try:
+        # BYPASS MODE: Get all items from all users
+        # Uncomment the code below to re-enable Cognito user filtering
+        """
         # Extract userId from Cognito authorizer claims
         user_id = get_user_id_from_claims(event)
         query_params = event.get('queryStringParameters', {}) or {}
@@ -59,6 +61,9 @@ def lambda_handler(event, context):
                     'error': 'Unauthorized: Invalid token'
                 })
             }
+        """
+
+        query_params = event.get('queryStringParameters', {}) or {}
 
         # Get boughtFilter from query string (defaults to 'all')
         bought_filter = query_params.get('bought', 'all').lower()
@@ -73,12 +78,21 @@ def lambda_handler(event, context):
                 })
             }
 
+        # BYPASS MODE: Scan all items (not filtered by user)
+        # For Cognito mode, replace with query by userId
+        logger.info(f"Scanning all items for all users, filter: {bought_filter}")
+
+        response = table.scan()
+
+        """
+        # COGNITO MODE (commented out):
         # Query items for the user
         logger.info(f"Querying items for user: {user_id}, filter: {bought_filter}")
 
         response = table.query(
             KeyConditionExpression=Key('userId').eq(user_id)
         )
+        """
 
         items = response.get('Items', [])
 
@@ -91,7 +105,7 @@ def lambda_handler(event, context):
         # Sort by addedDate (most recent first)
         items.sort(key=lambda x: x.get('addedDate', ''), reverse=True)
 
-        logger.info(f"Found {len(items)} items for user {user_id}")
+        logger.info(f"Found {len(items)} items from all users")
 
         # Return success response
         return {
@@ -101,7 +115,6 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
-                'userId': user_id,
                 'count': len(items),
                 'items': items
             }, cls=DecimalEncoder)

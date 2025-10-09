@@ -37,6 +37,9 @@ def lambda_handler(event, context):
         dict: Response with status code and created item details
     """
     try:
+        # BYPASS MODE: Use default user (no Cognito authentication)
+        # Uncomment the code below to re-enable Cognito user extraction
+        """
         # Extract userId from Cognito authorizer claims
         claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
         user_id = claims.get('custom:displayName') or claims.get('email', '').split('@')[0]
@@ -53,6 +56,10 @@ def lambda_handler(event, context):
                     'error': 'Unauthorized: Invalid token'
                 })
             }
+        """
+
+        # Bypass mode: Use default TestUser
+        user_id = "TestUser"
 
         # Parse input
         if isinstance(event.get('body'), str):

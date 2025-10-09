@@ -1,0 +1,69 @@
+name: Deploy Shopping List App
+
+on:
+  push:
+    branches:
+      - main  # Deploy when pushing to main branch
+    paths:
+      - 'lambda/**'
+      - 'website/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Deploy Lambda functions
+      - name: Package and deploy Lambda functions
+        run: |
+          cd lambda
+
+          # Package each modified function
+          for func in createItem getItems updateItem deleteItem emailList categorizeItems; do
+            echo "Packaging ${func}..."
+            zip ${func}.zip ${func}.py cognito_helper.py
+
+            echo "Deploying ${func}..."
+            aws lambda update-function-code \
+              --function-name ShoppingList-${func^} \
+              --zip-file fileb://${func}.zip \
+              --region eu-west-1
+          done
+
+      # Deploy website files
+      - name: Deploy website to S3
+        run: |
+          cd website
+          aws s3 sync . s3://shoppinglist.gianlucaformica.net/ \
+            --delete \
+            --exclude "*.md" \
+            --exclude ".DS_Store"
+
+      # Invalidate CloudFront cache
+      - name: Invalidate CloudFront distribution
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E2G8S9GOXLBFEZ \
+            --paths "/*"
+
+      - name: Deployment complete
+        run: |
+          echo "✅ Deployment successful!"
+          echo "Lambda functions updated"
+          echo "Website files synced to S3"
+          echo "CloudFront cache invalidated"

@@ -239,13 +239,31 @@ header h1 {
     min-height: 200px;
 }
 
+/* User Groups */
+.user-group {
+    margin-bottom: 35px;
+    padding: 20px;
+    background: #f8f9ff;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+}
+
+.user-header {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #764ba2;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #667eea;
+}
+
 /* Category Groups */
 .category-group {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .category-header {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: #667eea;
     margin-bottom: 12px;

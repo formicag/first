@@ -1,3 +1,9 @@
+// ============================================================================
+// COGNITO AUTHENTICATION - TEMPORARILY DISABLED
+// ============================================================================
+// Uncomment the code below to re-enable Cognito authentication
+
+/*
 // Cognito Configuration
 const COGNITO_CONFIG = {
     userPoolId: 'eu-west-1_IennWZZNL',
@@ -8,9 +14,6 @@ const COGNITO_CONFIG = {
 // Cognito endpoint
 const COGNITO_ENDPOINT = `https://cognito-idp.${COGNITO_CONFIG.region}.amazonaws.com/`;
 
-/**
- * Authenticate user with Cognito
- */
 async function authenticateUser(email, password) {
     const params = {
         AuthFlow: 'USER_PASSWORD_AUTH',
@@ -44,9 +47,6 @@ async function authenticateUser(email, password) {
     }
 }
 
-/**
- * Store authentication tokens
- */
 function storeTokens(authResult) {
     sessionStorage.setItem('idToken', authResult.IdToken);
     sessionStorage.setItem('accessToken', authResult.AccessToken);
@@ -56,6 +56,36 @@ function storeTokens(authResult) {
     const payload = JSON.parse(atob(authResult.IdToken.split('.')[1]));
     sessionStorage.setItem('userId', payload['custom:displayName'] || payload.email.split('@')[0]);
     sessionStorage.setItem('userEmail', payload.email);
+}
+*/
+
+// ============================================================================
+// BYPASS MODE - FOR DEVELOPMENT/TESTING WITHOUT COGNITO
+// ============================================================================
+
+/**
+ * Mock authentication - bypasses Cognito
+ */
+async function authenticateUser(email, password) {
+    // Simple mock authentication - accepts any credentials
+    return {
+        IdToken: 'mock-id-token',
+        AccessToken: 'mock-access-token',
+        RefreshToken: 'mock-refresh-token'
+    };
+}
+
+/**
+ * Store mock tokens - bypasses Cognito
+ */
+function storeTokens(authResult) {
+    sessionStorage.setItem('idToken', 'mock-id-token');
+    sessionStorage.setItem('accessToken', 'mock-access-token');
+    sessionStorage.setItem('refreshToken', 'mock-refresh-token');
+
+    // Use a default test user
+    sessionStorage.setItem('userId', 'TestUser');
+    sessionStorage.setItem('userEmail', 'test@example.com');
 }
 
 /**
@@ -69,13 +99,23 @@ function getIdToken() {
  * Get user ID from session
  */
 function getUserId() {
-    return sessionStorage.getItem('userId');
+    return sessionStorage.getItem('userId') || 'TestUser';
 }
 
 /**
  * Check if user is authenticated
  */
 function isAuthenticated() {
+    // BYPASS MODE: Always return true (no authentication required)
+    // Store default user if not already set
+    if (!sessionStorage.getItem('userId')) {
+        sessionStorage.setItem('userId', 'TestUser');
+        sessionStorage.setItem('userEmail', 'test@example.com');
+        sessionStorage.setItem('idToken', 'mock-id-token');
+    }
+    return true;
+
+    /* COGNITO MODE (commented out):
     const token = getIdToken();
     if (!token) return false;
 
@@ -87,6 +127,7 @@ function isAuthenticated() {
     } catch (error) {
         return false;
     }
+    */
 }
 
 /**
@@ -97,9 +138,8 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-/**
- * Refresh authentication token
- */
+/*
+// COGNITO REFRESH TOKEN - COMMENTED OUT
 async function refreshAuthToken() {
     const refreshToken = sessionStorage.getItem('refreshToken');
     if (!refreshToken) {
@@ -141,6 +181,15 @@ async function refreshAuthToken() {
         logout();
         return null;
     }
+}
+*/
+
+/**
+ * Mock refresh token - bypasses Cognito
+ */
+async function refreshAuthToken() {
+    // In bypass mode, just return the mock token
+    return 'mock-id-token';
 }
 
 // Login form handler (only run on login.html)

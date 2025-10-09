@@ -3,15 +3,24 @@ const API_BASE_URL = 'https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev
 
 // Check authentication on page load
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if user is authenticated
+    // BYPASS MODE: Authentication check disabled
+    // Uncomment the lines below to re-enable Cognito authentication
+    /*
     if (!isAuthenticated()) {
         window.location.href = 'login.html';
         return;
     }
+    */
 
-    // Get user ID and update UI
-    const userId = getUserId();
-    document.getElementById('user-list-title').textContent = `${userId}'s List`;
+    // Ensure we have a default user set (for bypass mode)
+    isAuthenticated(); // This will set default user if not set
+
+    // BYPASS MODE: Show all lists
+    document.getElementById('user-list-title').textContent = 'All Shopping Lists';
+
+    // COGNITO MODE (commented out):
+    // const userId = getUserId();
+    // document.getElementById('user-list-title').textContent = `${userId}'s List`;
 
     // Load user's items
     loadUserItems();
@@ -26,23 +35,34 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Load items for the logged-in user
+ * Load items for all users (bypass mode - no user filtering)
  */
 async function loadUserItems() {
     const itemsContainer = document.getElementById('items-list');
     const countElement = document.getElementById('item-count');
-    const userId = getUserId();
+
+    // BYPASS MODE: Load all items from all users
+    // For Cognito mode, uncomment the userId filtering:
+    // const userId = getUserId();
 
     try {
         itemsContainer.innerHTML = '<div class="loading">Loading items...</div>';
 
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}?bought=all`);
+        // BYPASS MODE: Load all items (no userId in path)
+        const response = await fetchWithAuth(`${API_BASE_URL}/items/all?bought=all`);
+
+        // COGNITO MODE (commented out):
+        // const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}?bought=all`);
 
         if (!response.ok) {
+            // BYPASS MODE: 401 check disabled
+            // Uncomment to re-enable Cognito authentication
+            /*
             if (response.status === 401) {
                 logout();
                 return;
             }
+            */
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -70,6 +90,9 @@ async function loadUserItems() {
  * Fetch with authentication header
  */
 async function fetchWithAuth(url, options = {}) {
+    // BYPASS MODE: Authentication header disabled
+    // Uncomment the code below to re-enable Cognito authentication
+    /*
     const token = getIdToken();
 
     if (!token || !isAuthenticated()) {
@@ -86,39 +109,72 @@ async function fetchWithAuth(url, options = {}) {
         ...options,
         headers
     });
+    */
+
+    // Bypass mode: Make request without Authorization header
+    return fetch(url, options);
 }
 
 /**
- * Group items by category and render them
+ * Group items by user, then by category, and render them
  */
 function renderGroupedItems(items) {
-    const grouped = {};
+    // BYPASS MODE: Group by user first, then by category
+    // For single-user mode, remove the user grouping
+
+    // Group by userId first
+    const groupedByUser = {};
 
     items.forEach(item => {
-        const category = item.category || 'Uncategorized';
-        if (!grouped[category]) {
-            grouped[category] = [];
+        const userId = item.userId || 'Unknown User';
+        if (!groupedByUser[userId]) {
+            groupedByUser[userId] = [];
         }
-        grouped[category].push(item);
+        groupedByUser[userId].push(item);
     });
 
-    const sortedCategories = Object.keys(grouped).sort((a, b) => {
-        if (a === 'Uncategorized') return 1;
-        if (b === 'Uncategorized') return -1;
-        return a.localeCompare(b);
-    });
+    // Sort users alphabetically
+    const sortedUsers = Object.keys(groupedByUser).sort();
 
     let html = '';
-    sortedCategories.forEach(category => {
-        const categoryItems = grouped[category].sort((a, b) => {
-            if (a.bought === b.bought) return 0;
-            return a.bought ? 1 : -1;
+
+    sortedUsers.forEach(userId => {
+        const userItems = groupedByUser[userId];
+
+        // Group items by category for this user
+        const grouped = {};
+        userItems.forEach(item => {
+            const category = item.category || 'Uncategorized';
+            if (!grouped[category]) {
+                grouped[category] = [];
+            }
+            grouped[category].push(item);
         });
 
-        html += `<div class="category-group">`;
-        html += `<div class="category-header">${escapeHtml(category)}</div>`;
-        html += categoryItems.map(item => createItemHTML(item)).join('');
-        html += `</div>`;
+        const sortedCategories = Object.keys(grouped).sort((a, b) => {
+            if (a === 'Uncategorized') return 1;
+            if (b === 'Uncategorized') return -1;
+            return a.localeCompare(b);
+        });
+
+        // Add user header
+        html += `<div class="user-group">`;
+        html += `<div class="user-header">${escapeHtml(userId)}'s List (${userItems.length} items)</div>`;
+
+        // Add categories for this user
+        sortedCategories.forEach(category => {
+            const categoryItems = grouped[category].sort((a, b) => {
+                if (a.bought === b.bought) return 0;
+                return a.bought ? 1 : -1;
+            });
+
+            html += `<div class="category-group">`;
+            html += `<div class="category-header">${escapeHtml(category)}</div>`;
+            html += categoryItems.map(item => createItemHTML(item)).join('');
+            html += `</div>`;
+        });
+
+        html += `</div>`; // Close user-group
     });
 
     return html;
