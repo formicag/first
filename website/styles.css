@@ -98,6 +98,32 @@ header h1 {
     margin-left: auto;
 }
 
+.btn-store-shop-header {
+    padding: 6px 12px;
+    background: #8957e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-store-shop-header:hover {
+    background: #a371f7;
+}
+
+.btn-store-shop-header:active {
+    background: #6e40c9;
+}
+
+.btn-store-shop-header:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
 /* Add Item Form */
 .add-item-form {
     background: #0d1117;
