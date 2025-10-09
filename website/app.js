@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFormHandler();
     setupEmailButtonHandler();
     setupAIConfigHandler();
+    setupUserDropdownHandler();
 
     // Setup logout button
     document.getElementById('logout-btn').addEventListener('click', logout);
@@ -121,28 +122,21 @@ async function fetchWithAuth(url, options = {}) {
     return fetch(url, options);
 }
 
-// Global variable to track which user is currently editing
-let currentlyEditingUser = null;
+// Global variable to track which user is selected in the dropdown
+let selectedUserForDisplay = null;
 
 /**
- * Set the currently editing user
+ * Set the selected user for display (from dropdown)
  */
-function setCurrentlyEditingUser(userId) {
-    currentlyEditingUser = userId;
+function setSelectedUserForDisplay(userId) {
+    selectedUserForDisplay = userId;
 }
 
 /**
- * Clear the currently editing user
+ * Get the selected user for display
  */
-function clearCurrentlyEditingUser() {
-    currentlyEditingUser = null;
-}
-
-/**
- * Get the currently editing user
- */
-function getCurrentlyEditingUser() {
-    return currentlyEditingUser;
+function getSelectedUserForDisplay() {
+    return selectedUserForDisplay;
 }
 
 /**
@@ -167,17 +161,17 @@ function renderGroupedItems(items) {
         groupedByUser[userId].push(item);
     });
 
-    // Get which user is currently editing
-    const editingUser = getCurrentlyEditingUser();
+    // Get which user is selected in the dropdown
+    const selectedUser = getSelectedUserForDisplay();
 
-    // Sort users: Put currently editing user first, otherwise Gianluca first, then Nicole
+    // Sort users: Put selected user first, otherwise Gianluca first, then Nicole
     let sortedUsers = allowedUsers.filter(user => groupedByUser[user]);
 
-    if (editingUser) {
-        // Move the editing user to the front
+    if (selectedUser) {
+        // Move the selected user to the front
         sortedUsers = sortedUsers.sort((a, b) => {
-            if (a === editingUser) return -1;
-            if (b === editingUser) return 1;
+            if (a === selectedUser) return -1;
+            if (b === selectedUser) return 1;
             return allowedUsers.indexOf(a) - allowedUsers.indexOf(b);
         });
     }
@@ -329,23 +323,7 @@ function handleItemEdit(event) {
     const currentName = itemElement.dataset.itemName;
     const currentQty = parseInt(itemElement.dataset.quantity);
 
-    // Set this user as currently editing and re-render to move their list to top
-    setCurrentlyEditingUser(userId);
-    loadUserItems();  // Re-render with new order
-
-    // Wait for re-render, then find the item again and show edit form
-    setTimeout(() => {
-        const newItemElement = document.querySelector(`.shopping-item[data-item-id="${itemId}"]`);
-        if (!newItemElement) return;
-
-        const itemDetails = newItemElement.querySelector('.item-details');
-        const editButton = newItemElement.querySelector('.btn-edit');
-
-        showEditForm(newItemElement, itemDetails, editButton, itemId, userId, currentName, currentQty);
-    }, 100);
-}
-
-function showEditForm(itemElement, itemDetails, button, itemId, userId, currentName, currentQty) {
+    const itemDetails = itemElement.querySelector('.item-details');
 
     // Create edit form
     const editForm = document.createElement('div');
@@ -381,7 +359,6 @@ function showEditForm(itemElement, itemDetails, button, itemId, userId, currentN
 
         if (newName === currentName && newQty === currentQty) {
             // No changes, just restore
-            clearCurrentlyEditingUser();
             await loadUserItems();
             return;
         }
@@ -403,21 +380,18 @@ function showEditForm(itemElement, itemDetails, button, itemId, userId, currentN
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            clearCurrentlyEditingUser();
             await loadUserItems();
             showNotification('✓ Item updated', 'success', 2000);
 
         } catch (error) {
             console.error('Error updating item:', error);
             showNotification('✗ Failed to update item', 'error', 3000);
-            clearCurrentlyEditingUser();
             await loadUserItems();
         }
     };
 
     // Handle cancel
     const cancelEdit = () => {
-        clearCurrentlyEditingUser();
         loadUserItems();
     };
 
@@ -622,6 +596,23 @@ function setupEmailButtonHandler() {
             button.disabled = false;
             button.textContent = '📧 Email My List';
         }
+    });
+}
+
+/**
+ * Setup user dropdown change handler to reorder lists
+ */
+function setupUserDropdownHandler() {
+    const userSelect = document.getElementById('user-select');
+
+    // Set initial selected user
+    setSelectedUserForDisplay(userSelect.value);
+
+    // Listen for changes
+    userSelect.addEventListener('change', () => {
+        const selectedUser = userSelect.value;
+        setSelectedUserForDisplay(selectedUser);
+        loadUserItems();  // Re-render with new order
     });
 }
 
