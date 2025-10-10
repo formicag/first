@@ -151,11 +151,10 @@ def lambda_handler(event, context):
         )
 
         corrected_name = ai_result['correctedName']
-        emoji = ai_result['emoji']
         estimated_price = ai_result['estimatedPrice']
         category = ai_result['category']
 
-        logger.info(f"AI processed: '{item_name}' → '{emoji} {corrected_name}' (£{estimated_price:.2f}, {category})")
+        logger.info(f"AI processed: '{item_name}' → '{corrected_name}' (£{estimated_price:.2f}, {category})")
 
         # Generate UUID and timestamp
         item_id = str(uuid.uuid4())
@@ -166,7 +165,6 @@ def lambda_handler(event, context):
             'userId': user_id,
             'itemId': item_id,
             'itemName': corrected_name,  # Use AI-corrected name
-            'emoji': emoji,  # Use AI-selected emoji
             'estimatedPrice': Decimal(str(estimated_price)),  # Convert to Decimal for DynamoDB
             'quantity': quantity,
             'category': category,  # Use AI-assigned category
@@ -186,7 +184,6 @@ def lambda_handler(event, context):
             'userId': item['userId'],
             'itemId': item['itemId'],
             'itemName': item['itemName'],
-            'emoji': item['emoji'],
             'estimatedPrice': float(item['estimatedPrice']),
             'quantity': item['quantity'],
             'category': item['category'],
@@ -206,7 +203,6 @@ def lambda_handler(event, context):
                 'aiProcessing': {
                     'originalName': item_name,
                     'correctedName': corrected_name,
-                    'emoji': emoji,
                     'estimatedPrice': estimated_price,
                     'wasSpellCorrected': item_name != corrected_name,
                     'category': category
@@ -278,12 +274,7 @@ TASK 2 - Capitalization:
 - Capitalize the FIRST letter of EACH word
 - Examples: "pork chops" → "Pork Chops", "tomato" → "Tomato"
 
-TASK 3 - Emoji Selection:
-- Choose ONE emoji that best represents this item
-- Use the most common, recognizable emoji for the item
-- Examples: "Milk" → "🥛", "Bread" → "🍞", "Apples" → "🍎", "Chicken" → "🍗"
-
-TASK 4 - Price Estimation:
+TASK 3 - Price Estimation:
 - Estimate the typical price at Sainsbury's UK for this item
 - Consider the quantity mentioned (if any) or assume standard pack size
 - Return price in GBP (pounds) as a decimal number
@@ -295,13 +286,13 @@ TASK 4 - Price Estimation:
     # Add categorization task
     if strict_categories:
         base_prompt += f"""
-TASK 5 - Categorization:
+TASK 4 - Categorization:
 - Categorize into ONE of these UK shopping centre aisles: {categories_str}
 - Use standard UK supermarket terminology
 - Think about where this would be found in a typical Tesco, Sainsbury's, or Asda"""
     else:
         base_prompt += f"""
-TASK 5 - Categorization:
+TASK 4 - Categorization:
 - Categorize into ONE of these UK shopping centre aisles: {categories_str}
 - You may suggest alternative category names if more appropriate"""
 
@@ -310,7 +301,7 @@ TASK 5 - Categorization:
         base_prompt += f"\n\nADDITIONAL INSTRUCTIONS:\n{custom_prompt.strip()}"
 
     base_prompt += """\n\nReturn ONLY valid JSON in this exact format:
-{"correctedName": "Item Name With Proper Capitalization", "emoji": "🥛", "estimatedPrice": 1.25, "category": "Category Name"}"""
+{"correctedName": "Item Name With Proper Capitalization", "estimatedPrice": 1.25, "category": "Category Name"}"""
 
     # Prepare request for Claude
     request_body = {
@@ -342,7 +333,6 @@ TASK 5 - Categorization:
         try:
             result = json.loads(response_text)
             corrected_name = result.get('correctedName', item_name)
-            emoji = result.get('emoji', '🛒')  # Default to shopping cart if no emoji
             estimated_price = result.get('estimatedPrice', 0.0)  # Default to 0 if no price
             category = result.get('category', 'Uncategorized')
 
@@ -362,7 +352,6 @@ TASK 5 - Categorization:
 
             return {
                 'correctedName': corrected_name,
-                'emoji': emoji,
                 'estimatedPrice': estimated_price,
                 'category': category
             }
@@ -373,7 +362,6 @@ TASK 5 - Categorization:
             corrected_name = ' '.join(word.capitalize() for word in item_name.split())
             return {
                 'correctedName': corrected_name,
-                'emoji': '🛒',
                 'estimatedPrice': 0.0,
                 'category': 'Uncategorized'
             }
@@ -384,7 +372,6 @@ TASK 5 - Categorization:
         corrected_name = ' '.join(word.capitalize() for word in item_name.split())
         return {
             'correctedName': corrected_name,
-            'emoji': '🛒',
             'estimatedPrice': 0.0,
             'category': 'Uncategorized'
         }

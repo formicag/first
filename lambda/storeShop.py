@@ -64,7 +64,36 @@ def lambda_handler(event, context):
 
         # Generate unique shop ID and timestamp
         shop_id = str(uuid.uuid4())
-        shop_date = datetime.utcnow().isoformat() + 'Z'
+        shop_date_full = datetime.utcnow()
+        shop_date = shop_date_full.isoformat() + 'Z'
+        today_date = shop_date_full.strftime('%Y-%m-%d')  # Date only for querying
+
+        # Delete previous shops from today
+        logger.info(f"Checking for previous shops from today: {today_date}")
+        try:
+            # Query all shops from today
+            scan_response = shop_history_table.scan()
+            today_shops = scan_response.get('Items', [])
+
+            # Handle pagination
+            while 'LastEvaluatedKey' in scan_response:
+                scan_response = shop_history_table.scan(ExclusiveStartKey=scan_response['LastEvaluatedKey'])
+                today_shops.extend(scan_response.get('Items', []))
+
+            # Filter to only shops from today
+            for shop in today_shops:
+                shop_date_str = shop.get('shopDate', '')
+                if shop_date_str.startswith(today_date):
+                    logger.info(f"Deleting previous shop from today: {shop.get('shopId')}")
+                    shop_history_table.delete_item(
+                        Key={
+                            'shopId': shop.get('shopId'),
+                            'shopDate': shop_date_str
+                        }
+                    )
+        except Exception as e:
+            logger.warning(f"Error deleting previous shops: {str(e)}")
+            # Continue even if deletion fails
 
         # Filter to only Gianluca and Nicole
         allowed_users = ['Gianluca', 'Nicole']

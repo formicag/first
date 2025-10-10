@@ -207,6 +207,7 @@ function renderGroupedItems(items) {
         // Add user header with basket emoji right-aligned and person emoji
         const userEmoji = userId === 'Gianluca' ? '👨' : '👩';
         const userColorClass = userId === 'Gianluca' ? 'user-gianluca' : 'user-nicole';
+        const displayName = userId === 'Gianluca' ? 'Luca' : userId;
 
         // Calculate total price for this user
         const totalPrice = userItems.reduce((sum, item) => {
@@ -216,7 +217,7 @@ function renderGroupedItems(items) {
 
         html += `<div class="user-group ${userColorClass}" data-user-id="${escapeHtml(userId)}">`;
         html += `<div class="user-header">`;
-        html += `<span class="user-header-name">${userEmoji} ${escapeHtml(userId)}'s List</span>`;
+        html += `<span class="user-header-name">${userEmoji} ${escapeHtml(displayName)}'s List</span>`;
         html += `<span class="user-header-total">Est. Tot: £${totalPrice.toFixed(2)}</span>`;
         html += `<span class="user-header-count">🛒 ${userItems.length}</span>`;
         html += `</div>`;
@@ -245,7 +246,6 @@ function renderGroupedItems(items) {
  */
 function createItemHTML(item) {
     const boughtClass = item.bought ? 'bought' : '';
-    const emoji = item.emoji || '🛒';  // Default to shopping cart if no emoji
     const estimatedPrice = item.estimatedPrice || 0;
     const totalPrice = estimatedPrice * item.quantity;
 
@@ -255,28 +255,15 @@ function createItemHTML(item) {
              data-user-id="${escapeHtml(item.userId)}"
              data-item-name="${escapeHtml(item.itemName)}"
              data-quantity="${item.quantity}">
-            <!-- Top row: Checkbox + Item name + Price -->
-            <div class="item-top-row">
-                <div class="item-name-with-checkbox">
-                    <input type="checkbox"
-                           class="item-checkbox"
-                           data-item-id="${item.itemId}"
-                           ${item.bought ? 'checked' : ''}>
-                    <span class="item-name">${escapeHtml(item.itemName)}</span>
-                </div>
-                <span class="item-price">£${totalPrice.toFixed(2)}</span>
-            </div>
-            <!-- Bottom row: Emoji + Quantity + Action buttons -->
-            <div class="item-bottom-row">
-                <div class="item-meta">
-                    <span class="item-emoji">${emoji}</span>
-                    <span class="item-quantity">Qty: ${item.quantity}</span>
-                </div>
-                <div class="item-actions">
-                    <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
-                    <button class="btn-delete" data-item-id="${item.itemId}" title="Delete item">🗑️</button>
-                </div>
-            </div>
+            <input type="checkbox"
+                   class="item-checkbox"
+                   data-item-id="${item.itemId}"
+                   ${item.bought ? 'checked' : ''}>
+            <span class="item-name">${escapeHtml(item.itemName)}</span>
+            <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
+            <span class="item-quantity">x${item.quantity}</span>
+            <span class="item-price">£${totalPrice.toFixed(2)}</span>
+            <button class="btn-delete" data-item-id="${item.itemId}" title="Delete item">🗑️</button>
         </div>
     `;
 }
@@ -353,27 +340,49 @@ function handleItemEdit(event) {
     const currentName = itemElement.dataset.itemName;
     const currentQty = parseInt(itemElement.dataset.quantity);
 
-    const topRow = itemElement.querySelector('.item-top-row');
-    const bottomRow = itemElement.querySelector('.item-bottom-row');
+    // Hide all children and show edit form
+    const checkbox = itemElement.querySelector('.item-checkbox');
+    const itemName = itemElement.querySelector('.item-name');
+    const editBtn = itemElement.querySelector('.btn-edit');
+    const qtySpan = itemElement.querySelector('.item-quantity');
+    const priceSpan = itemElement.querySelector('.item-price');
+    const deleteBtn = itemElement.querySelector('.btn-delete');
 
-    // Create edit form that spans both rows
-    const editForm = document.createElement('div');
-    editForm.className = 'item-edit-form';
-    editForm.innerHTML = `
-        <input type="text" class="edit-name-input" value="${escapeHtml(currentName)}" placeholder="Item name">
-        <input type="number" class="edit-qty-input" value="${currentQty}" min="1" placeholder="Qty">
-        <button class="btn-save-edit">✓</button>
-        <button class="btn-cancel-edit">✕</button>
-    `;
+    // Hide all elements
+    checkbox.style.display = 'none';
+    itemName.style.display = 'none';
+    editBtn.style.display = 'none';
+    qtySpan.style.display = 'none';
+    priceSpan.style.display = 'none';
+    deleteBtn.style.display = 'none';
 
-    // Replace both rows with edit form
-    topRow.replaceWith(editForm);
-    bottomRow.remove();
+    // Create inline edit form
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'edit-name-input';
+    nameInput.value = currentName;
+    nameInput.placeholder = 'Item name';
 
-    const nameInput = editForm.querySelector('.edit-name-input');
-    const qtyInput = editForm.querySelector('.edit-qty-input');
-    const saveBtn = editForm.querySelector('.btn-save-edit');
-    const cancelBtn = editForm.querySelector('.btn-cancel-edit');
+    const qtyInput = document.createElement('input');
+    qtyInput.type = 'number';
+    qtyInput.className = 'edit-qty-input';
+    qtyInput.value = currentQty;
+    qtyInput.min = 1;
+    qtyInput.placeholder = 'Qty';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn-save-edit';
+    saveBtn.textContent = '✓';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-cancel-edit';
+    cancelBtn.textContent = '✕';
+
+    // Insert edit elements
+    itemElement.appendChild(nameInput);
+    itemElement.appendChild(qtyInput);
+    itemElement.appendChild(saveBtn);
+    itemElement.appendChild(cancelBtn);
 
     nameInput.focus();
     nameInput.select();
