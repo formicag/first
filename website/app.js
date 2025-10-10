@@ -260,9 +260,9 @@ function createItemHTML(item) {
                    data-item-id="${item.itemId}"
                    ${item.bought ? 'checked' : ''}>
             <span class="item-name">${escapeHtml(item.itemName)}</span>
-            <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
             <span class="item-quantity">x${item.quantity}</span>
             <span class="item-price">£${totalPrice.toFixed(2)}</span>
+            <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
             <button class="btn-delete" data-item-id="${item.itemId}" title="Delete item">🗑️</button>
         </div>
     `;
