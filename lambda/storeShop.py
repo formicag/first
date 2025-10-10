@@ -129,7 +129,6 @@ def lambda_handler(event, context):
                 'userId': item.get('userId', ''),
                 'itemId': item.get('itemId', ''),
                 'itemName': item.get('itemName', ''),
-                'emoji': item.get('emoji', '🛒'),
                 'quantity': item.get('quantity', 1),
                 'estimatedPrice': price,
                 'category': item.get('category', 'Uncategorized'),
