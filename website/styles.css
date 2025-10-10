@@ -5,12 +5,19 @@
     box-sizing: border-box;
 }
 
+html {
+    /* Fluid font scaling for better mobile readability */
+    font-size: clamp(15px, 2.5vw, 17px);
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: #0d1117;
     min-height: 100vh;
-    padding: 20px;
+    padding: 1rem;
     color: #c9d1d9;
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
 .container {
@@ -22,18 +29,19 @@ body {
 header {
     text-align: center;
     color: white;
-    margin-bottom: 40px;
+    margin-bottom: 1.5rem;
 }
 
 header h1 {
-    font-size: 3rem;
-    margin-bottom: 10px;
+    font-size: clamp(1.75rem, 5vw, 3rem);
+    margin-bottom: 0.5rem;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .subtitle {
-    font-size: 1.1rem;
+    font-size: clamp(0.95rem, 3vw, 1.1rem);
     opacity: 0.9;
+    color: #8b949e;
 }
 
 .btn-logout {
@@ -124,53 +132,54 @@ header h1 {
     cursor: not-allowed;
 }
 
-/* Add Item Form */
+/* Add Item Form - Mobile-Optimized */
 .add-item-form {
     background: #0d1117;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    padding: 1.25rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
     border: 1px solid #30363d;
 }
 
 .add-item-form h3 {
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     color: #8b949e;
-    margin-bottom: 12px;
-    font-weight: 600;
+    margin-bottom: 1rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.075em;
 }
 
 .form-group {
-    margin-bottom: 10px;
+    margin-bottom: 0.875rem;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 100px 1fr;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 0.75rem;
+    margin-bottom: 0.875rem;
 }
 
 .add-item-form label {
     display: block;
-    font-weight: 500;
+    font-weight: 600;
     color: #8b949e;
-    margin-bottom: 6px;
-    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
 }
 
 .add-item-form input,
 .add-item-form select {
     width: 100%;
-    padding: 8px 12px;
+    padding: 0.75rem;
     border: 1px solid #30363d;
-    border-radius: 6px;
-    font-size: 0.95rem;
+    border-radius: 8px;
+    font-size: 1rem;
     transition: all 0.2s;
-    background: #0d1117;
+    background: #161b22;
     color: #c9d1d9;
+    min-height: 44px;
 }
 
 .add-item-form input:focus,
@@ -186,13 +195,14 @@ header h1 {
 
 .btn-add {
     width: 100%;
-    padding: 8px 16px;
+    padding: 0.875rem 1rem;
+    min-height: 50px;
     background: #238636;
     color: #ffffff;
     border: none;
-    border-radius: 6px;
-    font-size: 0.95rem;
-    font-weight: 500;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -203,6 +213,7 @@ header h1 {
 
 .btn-add:active {
     background: #1a7f37;
+    transform: scale(0.98);
 }
 
 /* Action Buttons Container */
@@ -348,24 +359,26 @@ header h1 {
 
 /* User Groups */
 .user-group {
-    margin-bottom: 20px;
-    padding: 12px;
-    background: #0d1117;
-    border-radius: 8px;
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    background: #161b22;
+    border-radius: 12px;
     border: 1px solid #30363d;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3) inset;
 }
 
 .user-header {
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.25rem;
+    font-weight: 700;
     color: #c9d1d9;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #30363d;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #30363d;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .user-header-name {
@@ -373,14 +386,16 @@ header h1 {
 }
 
 .user-header-total {
-    font-size: 0.95rem;
-    color: #238636;
-    font-weight: 700;
+    font-size: 1.1rem;
+    color: #3fb950;
+    font-weight: 800;
     white-space: nowrap;
 }
 
 .user-header-count {
     color: #58a6ff;
+    font-size: 1rem;
+    font-weight: 600;
     white-space: nowrap;
 }
 
@@ -395,18 +410,20 @@ header h1 {
 
 /* Category Groups */
 .category-group {
-    margin-bottom: 12px;
+    margin-bottom: 1rem;
 }
 
 .category-header {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #8b949e;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid #21262d;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #7ee787;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0 0.5rem 0.75rem;
+    background: #0d1117;
+    border-left: 3px solid #3fb950;
+    border-radius: 4px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.075em;
 }
 
 .loading {
@@ -429,16 +446,16 @@ header h1 {
     margin-bottom: 10px;
 }
 
-/* Shopping Item */
+/* Shopping Item - Mobile-Optimized Two-Line Layout */
 .shopping-item {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: #161b22;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: #1a1a1a;
     border: 1px solid #30363d;
-    border-radius: 6px;
-    margin-bottom: 4px;
+    border-radius: 10px;
+    margin-bottom: 0.625rem;
     transition: all 0.2s;
 }
 
@@ -452,84 +469,128 @@ header h1 {
     opacity: 0.5;
 }
 
+.shopping-item:active {
+    background: #21262d;
+}
+
 .item-checkbox {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
     cursor: pointer;
     flex-shrink: 0;
+}
+
+/* Top row: Checkbox + Item name + Price */
+.item-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.item-name-with-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex: 1;
+    min-width: 0;
 }
 
 .item-details {
     flex: 1;
     min-width: 0;
     display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .item-name-container {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.5rem;
     flex: 1;
-    min-width: 120px;
+    min-width: 0;
 }
 
 .item-quantity-container {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.5rem;
     flex-shrink: 0;
 }
 
 .item-emoji {
-    font-size: 1.2rem;
-    margin-right: 8px;
+    font-size: 1.5rem;
     flex-shrink: 0;
 }
 
 .item-name {
-    font-size: 0.95rem;
-    font-weight: 500;
-    color: #c9d1d9;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e6edf3;
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* Edit Form Inline Editing */
-.item-edit-form {
-    flex: 1;
+/* Bottom row: Emoji + Quantity + Action buttons */
+.item-bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: 30px; /* Align with item name above checkbox */
+}
+
+.item-meta {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.item-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Edit Form Inline Editing */
+.item-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
     flex-wrap: wrap;
+    padding: 0.5rem 0;
 }
 
 .edit-name-input {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 500;
     color: #c9d1d9;
-    border: 1px solid #58a6ff;
-    border-radius: 4px;
-    padding: 4px 8px;
+    border: 2px solid #58a6ff;
+    border-radius: 6px;
+    padding: 0.625rem;
     outline: none;
     flex: 1;
-    min-width: 100px;
+    min-width: 120px;
+    min-height: 44px;
     background: #0d1117;
 }
 
 .edit-qty-input {
-    font-size: 0.875rem;
+    font-size: 1rem;
     font-weight: 500;
     color: #c9d1d9;
-    border: 1px solid #58a6ff;
-    border-radius: 4px;
-    padding: 4px 8px;
+    border: 2px solid #58a6ff;
+    border-radius: 6px;
+    padding: 0.625rem;
     outline: none;
-    width: 70px;
+    width: 80px;
+    min-height: 44px;
     text-align: center;
     background: #0d1117;
 }
@@ -538,36 +599,49 @@ header h1 {
 .btn-cancel-edit {
     background: transparent;
     border: none;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     cursor: pointer;
-    padding: 4px;
-    transition: transform 0.1s, opacity 0.2s;
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: transform 0.1s, opacity 0.2s, background 0.2s;
     flex-shrink: 0;
 }
 
 .btn-save-edit {
-    color: #238636;
+    color: #3fb950;
     opacity: 0.9;
 }
 
 .btn-save-edit:hover {
     opacity: 1;
-    transform: scale(1.1);
+    transform: scale(1.05);
+    background: rgba(63, 185, 80, 0.1);
+}
+
+.btn-save-edit:active {
+    transform: scale(0.95);
+    background: rgba(63, 185, 80, 0.2);
 }
 
 .btn-cancel-edit {
-    color: #da3633;
-    opacity: 0.8;
+    color: #f85149;
+    opacity: 0.9;
 }
 
 .btn-cancel-edit:hover {
     opacity: 1;
-    transform: scale(1.1);
+    transform: scale(1.05);
+    background: rgba(248, 81, 73, 0.1);
 }
 
-.btn-save-edit:active,
 .btn-cancel-edit:active {
-    transform: scale(0.9);
+    transform: scale(0.95);
+    background: rgba(248, 81, 73, 0.2);
 }
 
 .item-name-input {
@@ -588,16 +662,16 @@ header h1 {
 }
 
 .item-quantity {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #8b949e;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #d0d0d0;
     white-space: nowrap;
 }
 
 .item-price {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #238636;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #3fb950;
     white-space: nowrap;
 }
 
@@ -614,25 +688,33 @@ header h1 {
     color: #c9d1d9;
 }
 
-/* Edit Buttons */
+/* Edit Buttons - Larger touch targets */
 .btn-edit {
     background: transparent;
     border: none;
-    font-size: 1rem;
+    font-size: 1.25rem;
     cursor: pointer;
-    padding: 4px;
-    opacity: 0.6;
-    transition: opacity 0.2s, transform 0.1s;
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s, transform 0.1s, background 0.2s;
     flex-shrink: 0;
+    border-radius: 6px;
 }
 
 .btn-edit:hover {
     opacity: 1;
-    transform: scale(1.1);
+    transform: scale(1.05);
+    background: rgba(88, 166, 255, 0.1);
 }
 
 .btn-edit:active {
     transform: scale(0.95);
+    background: rgba(88, 166, 255, 0.2);
 }
 
 .item-category {
@@ -640,26 +722,32 @@ header h1 {
 }
 
 .btn-delete {
-    padding: 6px 10px;
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
-    color: #da3633;
+    color: #f85149;
     border: none;
     border-radius: 6px;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     cursor: pointer;
     transition: all 0.2s;
     flex-shrink: 0;
-    opacity: 0.6;
+    opacity: 0.7;
 }
 
 .btn-delete:hover {
     opacity: 1;
-    background: rgba(218, 54, 51, 0.1);
+    background: rgba(248, 81, 73, 0.1);
     transform: scale(1.05);
 }
 
 .btn-delete:active {
     transform: scale(0.95);
+    background: rgba(248, 81, 73, 0.2);
 }
 
 /* Error Message */
@@ -884,9 +972,33 @@ header h1 {
     }
 }
 
+@media (max-width: 600px) {
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .item-bottom-row {
+        margin-left: 0;
+    }
+
+    .list-header {
+        flex-wrap: wrap;
+    }
+
+    .list-header h2 {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
 @media (max-width: 480px) {
     body {
-        padding: 8px;
+        padding: 0.5rem;
+    }
+
+    header {
+        margin-bottom: 1rem;
     }
 
     header h1 {
@@ -898,66 +1010,42 @@ header h1 {
         display: none;  /* Hide logout button on small mobile devices */
     }
 
-    .form-row {
-        grid-template-columns: 80px 1fr;
-    }
-
     .modal-actions {
         flex-direction: column;
     }
 
-    /* Mobile-optimized item layout */
+    .list-section {
+        padding: 1rem;
+    }
+
+    /* Two-line layout already optimized for mobile */
     .shopping-item {
-        padding: 8px;
-        gap: 8px;
+        padding: 0.875rem;
+        gap: 0.625rem;
     }
 
-    .item-details {
-        gap: 8px;
-    }
-
-    .item-name-container {
-        min-width: 100px;
-    }
-
-    .item-name {
-        font-size: 0.9rem;
-    }
-
-    .item-quantity {
-        font-size: 0.8rem;
-    }
-
-    .btn-edit {
-        font-size: 0.9rem;
-        padding: 2px;
-    }
-
-    .btn-delete {
-        font-size: 1rem;
-        padding: 4px 6px;
-    }
-
-    /* Mobile edit form */
+    /* Edit form adjustments */
     .item-edit-form {
-        gap: 6px;
+        gap: 0.5rem;
     }
 
     .edit-name-input {
-        font-size: 0.9rem;
-        padding: 4px 6px;
-        min-width: 80px;
+        font-size: 1rem;
+        padding: 0.5rem;
+        min-width: 100px;
     }
 
     .edit-qty-input {
-        font-size: 0.8rem;
-        padding: 4px 6px;
-        width: 55px;
+        font-size: 0.95rem;
+        padding: 0.5rem;
+        width: 70px;
     }
 
     .btn-save-edit,
     .btn-cancel-edit {
-        font-size: 1rem;
-        padding: 2px;
+        font-size: 1.25rem;
+        padding: 0.5rem;
+        min-width: 44px;
+        min-height: 44px;
     }
 }

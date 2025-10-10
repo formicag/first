@@ -255,18 +255,28 @@ function createItemHTML(item) {
              data-user-id="${escapeHtml(item.userId)}"
              data-item-name="${escapeHtml(item.itemName)}"
              data-quantity="${item.quantity}">
-            <input type="checkbox"
-                   class="item-checkbox"
-                   data-item-id="${item.itemId}"
-                   ${item.bought ? 'checked' : ''}>
-            <div class="item-details">
-                <span class="item-emoji">${emoji}</span>
-                <span class="item-name">${escapeHtml(item.itemName)}</span>
-                <span class="item-quantity">Qty: ${item.quantity}</span>
+            <!-- Top row: Checkbox + Item name + Price -->
+            <div class="item-top-row">
+                <div class="item-name-with-checkbox">
+                    <input type="checkbox"
+                           class="item-checkbox"
+                           data-item-id="${item.itemId}"
+                           ${item.bought ? 'checked' : ''}>
+                    <span class="item-name">${escapeHtml(item.itemName)}</span>
+                </div>
                 <span class="item-price">£${totalPrice.toFixed(2)}</span>
             </div>
-            <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
-            <button class="btn-delete" data-item-id="${item.itemId}" title="Delete item">🗑️</button>
+            <!-- Bottom row: Emoji + Quantity + Action buttons -->
+            <div class="item-bottom-row">
+                <div class="item-meta">
+                    <span class="item-emoji">${emoji}</span>
+                    <span class="item-quantity">Qty: ${item.quantity}</span>
+                </div>
+                <div class="item-actions">
+                    <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
+                    <button class="btn-delete" data-item-id="${item.itemId}" title="Delete item">🗑️</button>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -343,9 +353,10 @@ function handleItemEdit(event) {
     const currentName = itemElement.dataset.itemName;
     const currentQty = parseInt(itemElement.dataset.quantity);
 
-    const itemDetails = itemElement.querySelector('.item-details');
+    const topRow = itemElement.querySelector('.item-top-row');
+    const bottomRow = itemElement.querySelector('.item-bottom-row');
 
-    // Create edit form
+    // Create edit form that spans both rows
     const editForm = document.createElement('div');
     editForm.className = 'item-edit-form';
     editForm.innerHTML = `
@@ -355,9 +366,9 @@ function handleItemEdit(event) {
         <button class="btn-cancel-edit">✕</button>
     `;
 
-    // Replace item details with edit form
-    itemDetails.replaceWith(editForm);
-    button.style.display = 'none';
+    // Replace both rows with edit form
+    topRow.replaceWith(editForm);
+    bottomRow.remove();
 
     const nameInput = editForm.querySelector('.edit-name-input');
     const qtyInput = editForm.querySelector('.edit-qty-input');
