@@ -250,6 +250,7 @@ aws sts get-caller-identity --profile AdministratorAccess-016164185850
 
 - **[COGNITO-BYPASS-DEPLOYMENT.md](COGNITO-BYPASS-DEPLOYMENT.md)** - Current deployment configuration (Cognito disabled)
 - **[CI-CD-SETUP.md](CI-CD-SETUP.md)** - GitHub Actions CI/CD setup guide
+- **[OPTIMIZATION-OPPORTUNITIES.md](OPTIMIZATION-OPPORTUNITIES.md)** - Future optimization strategies and cost monitoring
 - **[cloudformation/README-deployment.md](cloudformation/README-deployment.md)** - Original infrastructure deployment
 - **[lambda/README.md](lambda/README.md)** - Lambda function documentation
 
@@ -269,6 +270,12 @@ To re-enable Cognito authentication, see [COGNITO-BYPASS-DEPLOYMENT.md](COGNITO-
 - ✅ OIDC authentication with AWS (no stored credentials)
 - ✅ Automatic deployment on push to `main`
 - ✅ Deploys Lambda functions and frontend in ~20-30 seconds
+
+### AI Configuration
+- **Model**: Claude 3 Haiku (configurable via `BEDROCK_MODEL` environment variable)
+- **Region**: eu-west-1
+- **Features**: Spell checking, emoji assignment, price estimation, categorization
+- **Cost Optimization**: Ready for AI caching when needed (see [OPTIMIZATION-OPPORTUNITIES.md](OPTIMIZATION-OPPORTUNITIES.md))
 
 ## Key Technologies
 

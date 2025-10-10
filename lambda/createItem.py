@@ -8,6 +8,7 @@ itemId and timestamps. It automatically categorizes items using Amazon Bedrock.
 import json
 import boto3
 import uuid
+import os
 from datetime import datetime
 from decimal import Decimal
 import logging
@@ -21,8 +22,11 @@ dynamodb = boto3.resource('dynamodb')
 bedrock_runtime = boto3.client('bedrock-runtime', region_name='eu-west-1')
 table = dynamodb.Table('ShoppingList')
 
-# Bedrock model configuration
-BEDROCK_MODEL_ID = 'anthropic.claude-3-haiku-20240307-v1:0'
+# Bedrock model configuration - configurable via environment variable
+BEDROCK_MODEL_ID = os.environ.get(
+    'BEDROCK_MODEL',
+    'anthropic.claude-3-haiku-20240307-v1:0'
+)
 
 # UK Shopping Centre Standard Categories
 UK_CATEGORIES = [
