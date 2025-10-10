@@ -36,7 +36,12 @@ This document outlines potential optimizations for the Shopping List application
 - More than 100 items added per week
 - Same items being added repeatedly
 
-**Code Ready**: ✅ Yes, files in `lambda/` directory
+**Code Ready**: ✅ Yes, `lambda/ai_cache.py` implemented and ready to activate
+
+**Status**: ✅ IMPLEMENTED (not yet activated)
+- Code is production-ready
+- Will activate when Bedrock costs exceed £2/month
+- To activate: Create DynamoDB table `ShoppingList-AICache-Dev` and update Lambda functions
 
 ---
 
@@ -59,6 +64,11 @@ This document outlines potential optimizations for the Shopping List application
 - Multiple developers working on codebase
 
 **Code Ready**: ✅ Yes, `lambda/prompt_utils.py` exists
+
+**Status**: ✅ IMPLEMENTED (ready to use)
+- Code is production-ready
+- Can be integrated into Lambda functions when needed
+- Provides reusable prompt templates for all AI tasks
 
 ---
 
@@ -184,12 +194,15 @@ Set up CloudWatch Alarms for:
 
 ## ✅ Current Optimizations Already Implemented
 
-1. ✅ **Configurable Bedrock Model** - Can switch models via environment variable
-2. ✅ **Pay-per-request DynamoDB** - Auto-scales, no wasted capacity
-3. ✅ **Efficient Lambda memory** - 256 MB is optimal for workload
-4. ✅ **Decimal type for prices** - Correct data types avoid conversion overhead
-5. ✅ **CloudFront CDN** - Static assets served from edge locations
-6. ✅ **GitHub Actions CI/CD** - Automated deployments, no manual overhead
+1. ✅ **Configurable Bedrock Model** - Can switch models via `BEDROCK_MODEL` environment variable
+2. ✅ **AI Caching Utility** - `lambda/ai_cache.py` ready to activate when needed
+3. ✅ **Modular Prompt Builder** - `lambda/prompt_utils.py` ready for integration
+4. ✅ **Pay-per-request DynamoDB** - Auto-scales, no wasted capacity
+5. ✅ **Efficient Lambda memory** - 256 MB is optimal for workload
+6. ✅ **Decimal type for prices** - Correct data types avoid conversion overhead
+7. ✅ **CloudFront CDN** - Static assets served from edge locations
+8. ✅ **GitHub Actions CI/CD** - Automated deployments, no manual overhead
+9. ✅ **Dark Theme UI** - Consistent, accessible design across all pages
 
 ---
 
@@ -233,5 +246,12 @@ Set up CloudWatch Alarms for:
 ---
 
 **Last Updated**: 2025-10-10
-**Status**: No optimizations needed at current scale
+**Status**: Core optimizations implemented, ready for future activation
+**Recent Changes**:
+- ✅ Added AI caching utility (`lambda/ai_cache.py`)
+- ✅ Added modular prompt builder (`lambda/prompt_utils.py`)
+- ✅ Made Bedrock model configurable via environment variables
+- ✅ Applied dark theme to all pages (index.html, login.html, prompt-manager.html)
+- ✅ Moved "Store Today's Shop" button to header for better UX
+
 **Review Next**: When monthly cost exceeds £5

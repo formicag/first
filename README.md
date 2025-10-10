@@ -23,11 +23,18 @@ Full-stack serverless application demonstrating AWS cloud architecture, CI/CD au
   - Automatic price estimation when adding items
   - Bulk price recalculation for all items
   - Real-time total price calculation per user and combined
+  - Total prices displayed in header row for quick visibility
 - ✅ **Shop History**: Store complete shopping list snapshots with date, time, items, and total price
+  - One-click "Store Today's Shop" button in header
+  - Preserves complete state of shopping list at time of storage
 - ✅ **Customizable AI Prompts**: Configure custom instructions and household-specific terminology
 - ✅ **Email Lists**: Send shopping lists via Amazon SES
 - ✅ **Grouped Display**: Items organized by user and category
-- ✅ **Dark Theme UI**: Modern GitHub-inspired dark theme with user-specific colors
+- ✅ **Dark Theme UI**: Modern GitHub-inspired dark theme across all pages
+  - Main shopping list page
+  - Login page
+  - AI Prompt Manager page
+  - Consistent color scheme: #0d1117 background, #c9d1d9 text, #8957e5 purple accents
 
 ### Technical Features
 - ✅ **Serverless Architecture**: Built entirely on AWS serverless services
@@ -36,6 +43,8 @@ Full-stack serverless application demonstrating AWS cloud architecture, CI/CD au
 - ✅ **No Authentication Mode**: Currently running in bypass mode (Cognito disabled)
 - ✅ **Global CDN**: CloudFront distribution for fast worldwide access
 - ✅ **API Gateway**: RESTful API with no authorization required
+- ✅ **Future-Ready Optimizations**: AI caching and modular prompts ready when scale increases
+- ✅ **Configurable AI Model**: Switch Bedrock models via environment variables
 
 ## Architecture
 
@@ -65,12 +74,13 @@ Full-stack serverless application demonstrating AWS cloud architecture, CI/CD au
 
 ```
 first/
-├── website/                    # Frontend application
-│   ├── index.html             # Main shopping list page
-│   ├── login.html             # Login page (bypassed)
+├── website/                    # Frontend application (all pages use dark theme)
+│   ├── index.html             # Main shopping list page (dark theme)
+│   ├── login.html             # Login page (bypassed, dark theme)
+│   ├── prompt-manager.html    # AI prompt configuration page (dark theme)
 │   ├── app.js                 # Main application logic
 │   ├── auth.js                # Authentication (bypassed)
-│   └── styles.css             # Styling
+│   └── styles.css             # Dark theme styling (GitHub-inspired)
 ├── lambda/                     # Backend Lambda functions
 │   ├── createItem.py          # Create new items with AI processing (spell check, emoji, price, category)
 │   ├── getItems.py            # Retrieve items (scans all users)
@@ -81,6 +91,8 @@ first/
 │   ├── improvePrompt.py       # AI prompt enrichment system
 │   ├── recalculatePrices.py   # Bulk price recalculation with AI
 │   ├── storeShop.py           # Store shop history snapshot
+│   ├── ai_cache.py            # AI response caching utility (ready for activation)
+│   ├── prompt_utils.py        # Modular prompt builder (ready for use)
 │   └── cognito_helper.py      # Cognito utilities (bypassed)
 ├── cloudformation/             # Infrastructure as Code
 │   ├── main-stack.yaml        # Main nested stack
@@ -95,6 +107,7 @@ first/
 │       └── deploy.yml         # GitHub Actions CI/CD workflow
 ├── COGNITO-BYPASS-DEPLOYMENT.md  # Bypass mode documentation
 ├── CI-CD-SETUP.md             # CI/CD setup guide
+├── OPTIMIZATION-OPPORTUNITIES.md # Future optimization strategies
 └── README.md                  # This file
 ```
 
@@ -275,7 +288,25 @@ To re-enable Cognito authentication, see [COGNITO-BYPASS-DEPLOYMENT.md](COGNITO-
 - **Model**: Claude 3 Haiku (configurable via `BEDROCK_MODEL` environment variable)
 - **Region**: eu-west-1
 - **Features**: Spell checking, emoji assignment, price estimation, categorization
-- **Cost Optimization**: Ready for AI caching when needed (see [OPTIMIZATION-OPPORTUNITIES.md](OPTIMIZATION-OPPORTUNITIES.md))
+- **Cost Optimization**:
+  - AI caching utility ready for activation (see `lambda/ai_cache.py`)
+  - Modular prompt builder implemented (see `lambda/prompt_utils.py`)
+  - Current costs: ~£2-3/month (well-optimized for current scale)
+  - Comprehensive optimization guide: [OPTIMIZATION-OPPORTUNITIES.md](OPTIMIZATION-OPPORTUNITIES.md)
+
+### UI/UX Design
+- **Theme**: GitHub-inspired dark mode across all pages
+- **Colors**:
+  - Primary background: `#0d1117`
+  - Card background: `#161b22`
+  - Text: `#c9d1d9`
+  - Accent purple: `#8957e5`
+  - Success green: `#238636`
+  - Error red: `#da3633`
+- **Pages**:
+  - `index.html` - Main shopping list with grouped items
+  - `login.html` - Login page (currently bypassed)
+  - `prompt-manager.html` - AI prompt configuration interface
 
 ## Key Technologies
 
