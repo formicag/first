@@ -9,10 +9,11 @@
         .login-container {
             max-width: 400px;
             margin: 100px auto;
-            background: white;
+            background: #161b22;
             padding: 40px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #30363d;
         }
 
         .login-header {
@@ -21,8 +22,12 @@
         }
 
         .login-header h1 {
-            color: #667eea;
+            color: #8957e5;
             margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #8b949e;
         }
 
         .form-group {
@@ -32,28 +37,30 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: #c9d1d9;
             font-weight: 600;
         }
 
         .form-group input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
+            background: #0d1117;
+            border: 2px solid #30363d;
             border-radius: 8px;
             font-size: 1rem;
+            color: #c9d1d9;
             transition: border-color 0.3s;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #8957e5;
         }
 
         .btn-login {
             width: 100%;
             padding: 14px;
-            background: #667eea;
+            background: #8957e5;
             color: white;
             border: none;
             border-radius: 8px;
@@ -64,7 +71,7 @@
         }
 
         .btn-login:hover {
-            background: #5568d3;
+            background: #7645d0;
             transform: translateY(-2px);
         }
 
@@ -73,13 +80,13 @@
         }
 
         .btn-login:disabled {
-            background: #9ca3af;
+            background: #484f58;
             cursor: not-allowed;
             transform: none;
         }
 
         .error-message {
-            background: #ff4757;
+            background: #da3633;
             color: white;
             padding: 12px;
             border-radius: 8px;

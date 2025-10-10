@@ -13,26 +13,31 @@
         }
 
         .section {
-            background: white;
+            background: #161b22;
             border-radius: 15px;
             padding: 30px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #30363d;
         }
 
         .section h2 {
-            color: #667eea;
+            color: #8957e5;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
+        .section p {
+            color: #8b949e;
+        }
+
         .prompt-display {
-            background: #f8f9ff;
+            background: #0d1117;
             padding: 20px;
             border-radius: 10px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #30363d;
             font-family: 'Courier New', monospace;
             font-size: 0.95rem;
             line-height: 1.6;
@@ -40,13 +45,14 @@
             margin-bottom: 15px;
             max-height: 400px;
             overflow-y: auto;
+            color: #c9d1d9;
         }
 
         .context-item {
-            background: #f8f9ff;
+            background: #0d1117;
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #8957e5;
             margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
@@ -58,19 +64,19 @@
         }
 
         .context-item strong {
-            color: #667eea;
+            color: #8957e5;
             display: block;
             margin-bottom: 5px;
         }
 
         .context-item .meaning {
-            color: #666;
+            color: #8b949e;
             font-size: 0.9rem;
         }
 
         .btn-delete-context {
             padding: 6px 12px;
-            background: #ff4757;
+            background: #da3633;
             color: white;
             border: none;
             border-radius: 6px;
@@ -80,27 +86,29 @@
         }
 
         .btn-delete-context:hover {
-            background: #e84051;
+            background: #b62324;
         }
 
         .feedback-input {
             width: 100%;
             padding: 15px;
-            border: 2px solid #e0e0e0;
+            background: #0d1117;
+            border: 2px solid #30363d;
             border-radius: 8px;
             font-size: 1rem;
             margin-bottom: 15px;
             font-family: inherit;
             resize: vertical;
+            color: #c9d1d9;
         }
 
         .feedback-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #8957e5;
         }
 
         .btn-primary {
-            background: #667eea;
+            background: #8957e5;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -112,18 +120,18 @@
         }
 
         .btn-primary:hover {
-            background: #5568d3;
+            background: #7645d0;
             transform: translateY(-2px);
         }
 
         .btn-primary:disabled {
-            background: #9ca3af;
+            background: #484f58;
             cursor: not-allowed;
             transform: none;
         }
 
         .btn-secondary {
-            background: #10b981;
+            background: #238636;
             color: white;
             padding: 12px 24px;
             border: none;
@@ -136,7 +144,7 @@
         }
 
         .btn-secondary:hover {
-            background: #059669;
+            background: #2ea043;
             transform: translateY(-2px);
         }
 
@@ -148,21 +156,21 @@
         }
 
         .status-success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #10b981;
+            background: #1a472a;
+            color: #7ee787;
+            border: 1px solid #238636;
         }
 
         .status-error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #ef4444;
+            background: #490b0b;
+            color: #f97583;
+            border: 1px solid #da3633;
         }
 
         .status-info {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #3b82f6;
+            background: #1a2734;
+            color: #79c0ff;
+            border: 1px solid #1f6feb;
         }
 
         .add-context-form {
@@ -174,47 +182,50 @@
 
         .add-context-form input {
             padding: 12px;
-            border: 2px solid #e0e0e0;
+            background: #0d1117;
+            border: 2px solid #30363d;
             border-radius: 8px;
             font-size: 1rem;
+            color: #c9d1d9;
         }
 
         .add-context-form input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #8957e5;
         }
 
         .back-link {
             display: inline-block;
-            color: white;
+            color: #c9d1d9;
             text-decoration: none;
             padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.2);
+            background: #21262d;
             border-radius: 8px;
             margin-bottom: 20px;
             transition: background 0.3s;
+            border: 1px solid #30363d;
         }
 
         .back-link:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: #30363d;
         }
 
         .examples-box {
-            background: #fffbeb;
-            border: 2px solid #fbbf24;
+            background: #1a2734;
+            border: 2px solid #1f6feb;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 15px;
         }
 
         .examples-box h4 {
-            color: #92400e;
+            color: #79c0ff;
             margin-bottom: 10px;
         }
 
         .examples-box ul {
             margin-left: 20px;
-            color: #78350f;
+            color: #8b949e;
         }
 
         .examples-box li {
@@ -229,11 +240,12 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #8957e5 0%, #6a42c2 100%);
             color: white;
             padding: 20px;
             border-radius: 10px;
             text-align: center;
+            border: 1px solid #30363d;
         }
 
         .stat-value {
