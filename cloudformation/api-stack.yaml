@@ -277,8 +277,7 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref ShopStoreResource
       HttpMethod: POST
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
