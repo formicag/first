@@ -10,7 +10,6 @@ import boto3
 from boto3.dynamodb.conditions import Key
 import logging
 from decimal import Decimal
-from cognito_helper import get_user_id_from_claims
 
 # Configure logging
 logger = logging.getLogger()
@@ -31,7 +30,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 def lambda_handler(event, context):
     """
-    Retrieve shopping list items for all users (Cognito bypass mode).
+    Retrieve shopping list items for all users.
 
     Expected input (JSON):
     {
@@ -42,27 +41,6 @@ def lambda_handler(event, context):
         dict: Response with status code and list of items
     """
     try:
-        # BYPASS MODE: Get all items from all users
-        # Uncomment the code below to re-enable Cognito user filtering
-        """
-        # Extract userId from Cognito authorizer claims
-        user_id = get_user_id_from_claims(event)
-        query_params = event.get('queryStringParameters', {}) or {}
-
-        if not user_id:
-            logger.error("Unable to extract userId from token claims")
-            return {
-                'statusCode': 401,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': 'Unauthorized: Invalid token'
-                })
-            }
-        """
-
         query_params = event.get('queryStringParameters', {}) or {}
 
         # Get boughtFilter from query string (defaults to 'all')
@@ -78,21 +56,10 @@ def lambda_handler(event, context):
                 })
             }
 
-        # BYPASS MODE: Scan all items (not filtered by user)
-        # For Cognito mode, replace with query by userId
+        # Scan all items from all users
         logger.info(f"Scanning all items for all users, filter: {bought_filter}")
 
         response = table.scan()
-
-        """
-        # COGNITO MODE (commented out):
-        # Query items for the user
-        logger.info(f"Querying items for user: {user_id}, filter: {bought_filter}")
-
-        response = table.query(
-            KeyConditionExpression=Key('userId').eq(user_id)
-        )
-        """
 
         items = response.get('Items', [])
 

@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'API Stack - API Gateway REST API with Cognito authorizer for Shopping List application'
+Description: 'API Stack - API Gateway REST API for Shopping List application'
 
 Parameters:
   ProjectName:
@@ -16,10 +16,6 @@ Parameters:
     Type: String
     Description: API Gateway stage name
     Default: dev
-
-  UserPoolArn:
-    Type: String
-    Description: ARN of the Cognito User Pool
 
   CreateItemFunctionArn:
     Type: String
@@ -70,17 +66,6 @@ Resources:
           Value: !Ref Environment
         - Key: ManagedBy
           Value: CloudFormation
-
-  # Cognito Authorizer
-  CognitoAuthorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      Name: CognitoAuthorizer
-      Type: COGNITO_USER_POOLS
-      IdentitySource: method.request.header.Authorization
-      RestApiId: !Ref RestApi
-      ProviderARNs:
-        - !Ref UserPoolArn
 
   # Resource: /items
   ItemsResource:
@@ -177,8 +162,7 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref ItemsResource
       HttpMethod: POST
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -191,8 +175,7 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref ItemsUserIdResource
       HttpMethod: GET
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       RequestParameters:
         method.request.querystring.bought: false
       Integration:
@@ -207,8 +190,7 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref ItemsUserIdItemIdResource
       HttpMethod: PUT
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -221,8 +203,7 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref ItemsUserIdItemIdResource
       HttpMethod: DELETE
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -235,8 +216,7 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref EmailUserIdResource
       HttpMethod: POST
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -249,8 +229,7 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref CategorizeUserIdResource
       HttpMethod: POST
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -263,8 +242,7 @@ Resources:
       RestApiId: !Ref RestApi
       ResourceId: !Ref PricesRecalculateResource
       HttpMethod: POST
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref CognitoAuthorizer
+      AuthorizationType: NONE
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -392,9 +370,3 @@ Outputs:
     Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}'
     Export:
       Name: !Sub '${AWS::StackName}-ApiEndpoint'
-
-  CognitoAuthorizerId:
-    Description: ID of the Cognito authorizer
-    Value: !Ref CognitoAuthorizer
-    Export:
-      Name: !Sub '${AWS::StackName}-AuthorizerId'

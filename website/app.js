@@ -1,28 +1,11 @@
 // API Configuration
 const API_BASE_URL = 'https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev';
 
-// Check authentication on page load
+// Initialize app on page load
 document.addEventListener('DOMContentLoaded', () => {
-    // BYPASS MODE: Authentication check disabled
-    // Uncomment the lines below to re-enable Cognito authentication
-    /*
-    if (!isAuthenticated()) {
-        window.location.href = 'login.html';
-        return;
-    }
-    */
+    document.getElementById('user-list-title').textContent = 'Shopping Lists';
 
-    // Ensure we have a default user set (for bypass mode)
-    isAuthenticated(); // This will set default user if not set
-
-    // BYPASS MODE: Show all lists
-    document.getElementById('user-list-title').textContent = 'All Shopping Lists';
-
-    // COGNITO MODE (commented out):
-    // const userId = getUserId();
-    // document.getElementById('user-list-title').textContent = `${userId}'s List`;
-
-    // Load user's items
+    // Load items
     loadUserItems();
 
     // Setup form handlers
@@ -32,42 +15,22 @@ document.addEventListener('DOMContentLoaded', () => {
     setupRecalculatePricesHandler();
     setupAIConfigHandler();
     setupUserDropdownHandler();
-
-    // Setup logout button
-    document.getElementById('logout-btn').addEventListener('click', logout);
 });
 
 /**
- * Load items for all users (bypass mode - no user filtering)
+ * Load items for all users
  */
 async function loadUserItems() {
     const itemsContainer = document.getElementById('items-list');
     const countElement = document.getElementById('item-count');
 
-    // BYPASS MODE: Load all items from all users
-    // For Cognito mode, uncomment the userId filtering:
-    // const userId = getUserId();
-
     try {
         itemsContainer.innerHTML = '<div class="loading">Loading items...</div>';
 
-        // BYPASS MODE: Load all items (use any userId - Lambda scans all)
-        // The Lambda function has been modified to scan all items regardless of userId
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/TestUser?bought=all`);
-
-        // COGNITO MODE (commented out):
-        // const userId = getUserId();
-        // const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}?bought=all`);
+        // Load all items from all users
+        const response = await fetch(`${API_BASE_URL}/items/TestUser?bought=all`);
 
         if (!response.ok) {
-            // BYPASS MODE: 401 check disabled
-            // Uncomment to re-enable Cognito authentication
-            /*
-            if (response.status === 401) {
-                logout();
-                return;
-            }
-            */
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -100,34 +63,6 @@ async function loadUserItems() {
     }
 }
 
-/**
- * Fetch with authentication header
- */
-async function fetchWithAuth(url, options = {}) {
-    // BYPASS MODE: Authentication header disabled
-    // Uncomment the code below to re-enable Cognito authentication
-    /*
-    const token = getIdToken();
-
-    if (!token || !isAuthenticated()) {
-        logout();
-        return;
-    }
-
-    const headers = {
-        ...options.headers,
-        'Authorization': token
-    };
-
-    return fetch(url, {
-        ...options,
-        headers
-    });
-    */
-
-    // Bypass mode: Make request without Authorization header
-    return fetch(url, options);
-}
 
 // Global variable to track which user is selected in the dropdown
 let selectedUserForDisplay = null;
@@ -150,9 +85,6 @@ function getSelectedUserForDisplay() {
  * Group items by user, then by category, and render them
  */
 function renderGroupedItems(items) {
-    // BYPASS MODE: Group by user first, then by category
-    // Only show Gianluca and Nicole's lists
-
     // Filter to only include Gianluca and Nicole
     const allowedUsers = ['Gianluca', 'Nicole'];
     const filteredItems = items.filter(item => allowedUsers.includes(item.userId));
@@ -303,7 +235,7 @@ async function handleCheckboxChange(event) {
     const bought = checkbox.checked;
 
     try {
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+        const response = await fetch(`${API_BASE_URL}/items/${userId}/${itemId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -408,7 +340,7 @@ function handleItemEdit(event) {
             if (newName !== currentName) updates.itemName = newName;
             if (newQty !== currentQty) updates.quantity = newQty;
 
-            const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+            const response = await fetch(`${API_BASE_URL}/items/${userId}/${itemId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -465,7 +397,7 @@ async function handleDeleteClick(event) {
     const userId = itemElement.dataset.userId;
 
     try {
-        const response = await fetchWithAuth(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+        const response = await fetch(`${API_BASE_URL}/items/${userId}/${itemId}`, {
             method: 'DELETE'
         });
 
@@ -523,7 +455,7 @@ function setupFormHandler() {
                 strictCategories     // Send strict categories preference
             };
 
-            const response = await fetchWithAuth(`${API_BASE_URL}/items`, {
+            const response = await fetch(`${API_BASE_URL}/items`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -589,7 +521,7 @@ function setupEmailButtonHandler() {
 
     button.addEventListener('click', async () => {
         const itemsContainer = document.getElementById('items-list');
-        const userId = getUserId();
+        const userId = 'Gianluca';  // Default user for email
 
         const existingMessages = itemsContainer.parentElement.querySelectorAll('.success-message, .error-message');
         existingMessages.forEach(msg => msg.remove());
@@ -598,7 +530,7 @@ function setupEmailButtonHandler() {
         button.textContent = '📧 Sending...';
 
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/email/${userId}`, {
+            const response = await fetch(`${API_BASE_URL}/email/${userId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -654,7 +586,7 @@ function setupStoreShopHandler() {
         button.textContent = '📦 Storing...';
 
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/shop/store`, {
+            const response = await fetch(`${API_BASE_URL}/shop/store`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -699,7 +631,7 @@ function setupRecalculatePricesHandler() {
         button.textContent = '🤖 AI Recalculating...';
 
         try {
-            const response = await fetchWithAuth(`${API_BASE_URL}/prices/recalculate`, {
+            const response = await fetch(`${API_BASE_URL}/prices/recalculate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

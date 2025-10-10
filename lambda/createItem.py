@@ -55,38 +55,16 @@ def lambda_handler(event, context):
 
     Expected input (JSON):
     {
+        "userId": "Gianluca",
         "itemName": "Eggs",
         "quantity": 12,
         "category": "Dairy"  // optional
     }
 
-    UserId is extracted from Cognito JWT token claims.
-
     Returns:
         dict: Response with status code and created item details
     """
     try:
-        # BYPASS MODE: Use default user (no Cognito authentication)
-        # Uncomment the code below to re-enable Cognito user extraction
-        """
-        # Extract userId from Cognito authorizer claims
-        claims = event.get('requestContext', {}).get('authorizer', {}).get('claims', {})
-        user_id = claims.get('custom:displayName') or claims.get('email', '').split('@')[0]
-
-        if not user_id:
-            logger.error("Unable to extract userId from token claims")
-            return {
-                'statusCode': 401,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'body': json.dumps({
-                    'error': 'Unauthorized: Invalid token'
-                })
-            }
-        """
-
         # Parse input
         if isinstance(event.get('body'), str):
             body = json.loads(event['body'])
