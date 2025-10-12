@@ -120,7 +120,10 @@ function renderGroupedItems(items) {
     sortedUsers.forEach(userId => {
         const userItems = groupedByUser[userId];
 
-        // Items are already sorted by store layout from the API
+        // Separate items: regular items (sorted by store layout) vs saveForNext items
+        const regularItems = userItems.filter(item => !item.saveForNext);
+        const savedForNextItems = userItems.filter(item => item.saveForNext);
+
         // Add user header with basket emoji right-aligned and person emoji
         const userEmoji = userId === 'Gianluca' ? '👨' : '👩';
         const userColorClass = userId === 'Gianluca' ? 'user-gianluca' : 'user-nicole';
@@ -139,10 +142,17 @@ function renderGroupedItems(items) {
         html += `<span class="user-header-count">🛒 ${userItems.length}</span>`;
         html += `</div>`;
 
-        // Add items for this user (sorted by store layout, no category headers)
-        userItems.forEach(item => {
+        // First, add regular items (sorted by store layout from API)
+        regularItems.forEach(item => {
             html += createItemHTML(item);
         });
+
+        // Then, add saved-for-next items at the bottom
+        if (savedForNextItems.length > 0) {
+            savedForNextItems.forEach(item => {
+                html += createItemHTML(item);
+            });
+        }
 
         html += `</div>`; // Close user-group
     });
@@ -427,16 +437,15 @@ async function handleSaveForNextClick(event) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Update UI
+        // Show notification and reload to re-sort items
         if (newSaveForNext) {
-            itemElement.classList.add('save-for-next');
-            button.textContent = '🔖';
-            showNotification('✓ Item saved for next shop', 'success', 2000);
+            showNotification('✓ Item saved for next shop (moved to bottom)', 'success', 2000);
         } else {
-            itemElement.classList.remove('save-for-next');
-            button.textContent = '📌';
-            showNotification('✓ Item removed from next shop', 'success', 2000);
+            showNotification('✓ Item removed from next shop (restored to list)', 'success', 2000);
         }
+
+        // Reload the list to re-sort items (save-for-next go to bottom, others restore to store layout order)
+        await loadUserItems();
 
     } catch (error) {
         console.error('Error updating saveForNext:', error);
