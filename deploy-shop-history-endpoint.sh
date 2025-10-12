@@ -9,7 +9,7 @@ REGION="eu-west-1"
 PROFILE="AdministratorAccess-016164185850"
 FUNCTION_NAME="ShoppingList-GetShopHistory"
 API_ID="01mmfw29n0"
-ROLE_ARN="arn:aws:iam::016164185850:role/ShoppingList-Dev-LambdaRole"
+ROLE_ARN="arn:aws:iam::016164185850:role/ShoppingListLambdaRole"
 
 echo "📦 Creating Lambda function deployment package..."
 cd lambda
