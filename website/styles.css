@@ -469,6 +469,21 @@ header h1 {
     opacity: 0.5;
 }
 
+.shopping-item.save-for-next {
+    background: #1a1a1a;
+    opacity: 0.6;
+    border-color: #58a6ff;
+}
+
+.shopping-item.save-for-next .item-name {
+    color: #8b949e;
+}
+
+.shopping-item.save-for-next .item-quantity,
+.shopping-item.save-for-next .item-price {
+    color: #6e7681;
+}
+
 .shopping-item:active {
     background: #21262d;
 }
@@ -656,6 +671,35 @@ header h1 {
 
 .item-category {
     color: #58a6ff;
+}
+
+.btn-save-next {
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #58a6ff;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.btn-save-next:hover {
+    opacity: 1;
+    background: rgba(88, 166, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.btn-save-next:active {
+    transform: scale(0.95);
+    background: rgba(88, 166, 255, 0.2);
 }
 
 .btn-delete {
