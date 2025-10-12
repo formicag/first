@@ -51,6 +51,18 @@ async function loadDashboardData() {
 
         // Generate dashboard HTML
         contentContainer.innerHTML = `
+            <!-- Shop History List - Top Section -->
+            <div class="dashboard-card shop-history-section">
+                <div class="card-header">
+                    <span class="card-icon">📜</span>
+                    <span>All Saved Shops</span>
+                </div>
+                <div id="message-container"></div>
+                <div class="shop-history-list">
+                    ${renderShopHistoryList(shops)}
+                </div>
+            </div>
+
             <div class="dashboard-grid">
                 <!-- Summary Stats -->
                 <div class="dashboard-card">
@@ -100,18 +112,6 @@ async function loadDashboardData() {
                     </div>
                     <div class="category-list">
                         ${renderCategoryAnalysis(categoryAnalysis)}
-                    </div>
-                </div>
-
-                <!-- Shop History List -->
-                <div class="dashboard-card last-shop-section">
-                    <div class="card-header">
-                        <span class="card-icon">📜</span>
-                        <span>All Saved Shops</span>
-                    </div>
-                    <div id="message-container"></div>
-                    <div class="shop-history-list">
-                        ${renderShopHistoryList(shops)}
                     </div>
                 </div>
 
