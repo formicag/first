@@ -10,6 +10,7 @@ import boto3
 from boto3.dynamodb.conditions import Key
 import logging
 from decimal import Decimal
+from store_layout import sort_items_by_store_layout
 
 # Configure logging
 logger = logging.getLogger()
@@ -69,8 +70,8 @@ def lambda_handler(event, context):
         elif bought_filter == 'false':
             items = [item for item in items if item.get('bought') is False]
 
-        # Sort by addedDate (most recent first)
-        items.sort(key=lambda x: x.get('addedDate', ''), reverse=True)
+        # Sort by store layout (entrance to back) for better shopping experience
+        items = sort_items_by_store_layout(items)
 
         logger.info(f"Found {len(items)} items from all users")
 

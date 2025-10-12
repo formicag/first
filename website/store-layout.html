@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Layout Configuration</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .layout-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .layout-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .layout-header h1 {
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            color: #c9d1d9;
+            margin-bottom: 0.5rem;
+        }
+
+        .layout-header .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 8px 16px;
+            background: #21262d;
+            color: #58a6ff;
+            text-decoration: none;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            transition: all 0.2s;
+        }
+
+        .layout-header .back-link:hover {
+            background: #30363d;
+            border-color: #58a6ff;
+        }
+
+        .instructions {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .instructions h2 {
+            color: #c9d1d9;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .instructions p {
+            color: #8b949e;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .layout-list {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .layout-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #30363d;
+        }
+
+        .layout-list-header h2 {
+            color: #c9d1d9;
+            font-size: 1.3rem;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+
+        .category-item:active {
+            cursor: grabbing;
+        }
+
+        .category-item.dragging {
+            opacity: 0.5;
+            border-color: #58a6ff;
+        }
+
+        .category-item:hover {
+            background: #1c2128;
+            border-color: #8b949e;
+        }
+
+        .drag-handle {
+            font-size: 1.5rem;
+            color: #8b949e;
+            cursor: grab;
+        }
+
+        .position-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #58a6ff;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .category-name {
+            flex: 1;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #c9d1d9;
+        }
+
+        .category-icon {
+            font-size: 1.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-save {
+            flex: 1;
+            padding: 1rem;
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #2ea043;
+        }
+
+        .btn-save:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            flex: 1;
+            padding: 1rem;
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: #30363d;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .message.success {
+            background: #238636;
+            color: white;
+            border: 1px solid #2ea043;
+        }
+
+        .message.error {
+            background: #da3633;
+            color: white;
+            border: 1px solid #f85149;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout-container">
+        <div class="layout-header">
+            <h1>🏪 Store Layout Configuration</h1>
+            <p class="subtitle">Organize categories by distance from store entrance</p>
+            <a href="index.html" class="back-link">← Back to Shopping List</a>
+        </div>
+
+        <div class="instructions">
+            <h2>📍 How It Works</h2>
+            <p><strong>Position 1</strong> = Closest to entrance (first section you encounter)</p>
+            <p><strong>Position 16</strong> = Furthest from entrance (last section at the back)</p>
+            <p><strong>Drag and drop</strong> categories to reorder them based on your store's layout. Your shopping list will automatically organize items in this order for efficient shopping!</p>
+        </div>
+
+        <div id="message-container"></div>
+
+        <div class="layout-list">
+            <div class="layout-list-header">
+                <h2>Store Categories</h2>
+            </div>
+            <div id="categories-list">
+                <div class="loading">Loading categories...</div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-save" id="save-layout-btn">💾 Save Layout</button>
+            <button class="btn-reset" id="reset-layout-btn">🔄 Reset to Default</button>
+        </div>
+    </div>
+
+    <script src="store-layout.js"></script>
+</body>
+</html>
