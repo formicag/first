@@ -155,11 +155,12 @@ function renderGroupedItems(items) {
  */
 function createItemHTML(item) {
     const boughtClass = item.bought ? 'bought' : '';
+    const saveForNextClass = item.saveForNext ? 'save-for-next' : '';
     const estimatedPrice = item.estimatedPrice || 0;
     const totalPrice = estimatedPrice * item.quantity;
 
     return `
-        <div class="shopping-item ${boughtClass}"
+        <div class="shopping-item ${boughtClass} ${saveForNextClass}"
              data-item-id="${item.itemId}"
              data-user-id="${escapeHtml(item.userId)}"
              data-item-name="${escapeHtml(item.itemName)}"
@@ -171,6 +172,9 @@ function createItemHTML(item) {
             <span class="item-name">${escapeHtml(item.itemName)}</span>
             <span class="item-quantity">x${item.quantity}</span>
             <span class="item-price">£${totalPrice.toFixed(2)}</span>
+            <button class="btn-save-next" data-item-id="${item.itemId}" title="Save for next shop">
+                ${item.saveForNext ? '🔖' : '📌'}
+            </button>
             <button class="btn-edit" data-item-id="${item.itemId}" title="Edit item">✏️</button>
             <button class="btn-delete" data-item-id="${item.itemId}" title="Delete item">🗑️</button>
         </div>
@@ -198,6 +202,12 @@ function attachItemEventListeners() {
     const editButtons = itemsContainer.querySelectorAll('.btn-edit');
     editButtons.forEach(button => {
         button.addEventListener('click', handleItemEdit);
+    });
+
+    // Add save for next shop listeners
+    const saveNextButtons = itemsContainer.querySelectorAll('.btn-save-next');
+    saveNextButtons.forEach(button => {
+        button.addEventListener('click', handleSaveForNextClick);
     });
 }
 
@@ -392,6 +402,49 @@ async function handleDeleteClick(event) {
 }
 
 /**
+ * Handle save for next shop button click
+ */
+async function handleSaveForNextClick(event) {
+    const button = event.target;
+    const itemElement = button.closest('.shopping-item');
+    const itemId = button.dataset.itemId;
+    const userId = itemElement.dataset.userId;
+
+    // Toggle saveForNext status
+    const currentSaveForNext = itemElement.classList.contains('save-for-next');
+    const newSaveForNext = !currentSaveForNext;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/items/${userId}/${itemId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ saveForNext: newSaveForNext })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Update UI
+        if (newSaveForNext) {
+            itemElement.classList.add('save-for-next');
+            button.textContent = '🔖';
+            showNotification('✓ Item saved for next shop', 'success', 2000);
+        } else {
+            itemElement.classList.remove('save-for-next');
+            button.textContent = '📌';
+            showNotification('✓ Item removed from next shop', 'success', 2000);
+        }
+
+    } catch (error) {
+        console.error('Error updating saveForNext:', error);
+        showNotification('✗ Failed to update item', 'error', 3000);
+    }
+}
+
+/**
  * Setup form submission handler
  */
 function setupFormHandler() {
@@ -555,12 +608,12 @@ function setupStoreShopHandler() {
     const button = document.getElementById('store-shop-btn');
 
     button.addEventListener('click', async () => {
-        if (!confirm('Store today\'s shop to history? This will save a snapshot of all current items with their details, quantities, prices, and categories.')) {
+        if (!confirm('Save your shop? This will:\n\n✓ Save ticked items (in basket) to shop history\n✓ Remove ticked items from current list\n✓ Keep items marked for next shop\n✓ Keep items not ticked (not purchased)')) {
             return;
         }
 
         button.disabled = true;
-        button.textContent = '📦 Storing...';
+        button.textContent = '💾 Saving...';
 
         try {
             const response = await fetch(`${API_BASE_URL}/shop/store`, {
@@ -577,18 +630,21 @@ function setupStoreShopHandler() {
             const data = await response.json();
 
             showNotification(
-                `✓ Shop stored successfully! ${data.shop.totalItems} items, £${data.shop.totalPrice.toFixed(2)} total.`,
+                `✓ Shop saved! ${data.shop.totalItems} items purchased, £${data.shop.totalPrice.toFixed(2)} total.`,
                 'success',
                 5000
             );
 
+            // Reload items to show updated list
+            await loadUserItems();
+
         } catch (error) {
             console.error('Error storing shop:', error);
-            showNotification('✗ Failed to store shop. Please try again.', 'error', 5000);
+            showNotification('✗ Failed to save shop. Please try again.', 'error', 5000);
 
         } finally {
             button.disabled = false;
-            button.textContent = '📦 Store Today\'s Shop';
+            button.textContent = '💾 Save My Shop';
         }
     });
 }

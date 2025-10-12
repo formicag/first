@@ -1,8 +1,13 @@
 """
 Lambda function to store today's shop in history.
 
-This function snapshots all current shopping list items and stores them
-in the ShopHistory table with timestamp, preserving all item details.
+NEW WORKFLOW:
+1. Save only TICKED items (bought=True) to shop history
+2. DELETE ticked items from current shopping list
+3. KEEP items marked saveForNext=True
+4. KEEP items NOT ticked (bought=False)
+
+This prepares the list for the next shop with saved and unpurchased items.
 """
 
 import json
@@ -24,19 +29,19 @@ shop_history_table = dynamodb.Table('ShoppingList-ShopHistory-Dev')
 
 def lambda_handler(event, context):
     """
-    Store today's shop to history.
+    Store today's shop to history (only ticked items).
 
-    Creates a snapshot of all current items with all their details:
-    - itemName, emoji, quantity, estimatedPrice, category
-    - bought status
-    - userId
-    - Timestamp of when shop was stored
+    New workflow:
+    1. Find all items with bought=True (ticked)
+    2. Save these to shop history
+    3. Delete these ticked items from shopping list
+    4. Keep items with saveForNext=True or bought=False
 
     Returns:
         dict: Response with status code and stored shop details
     """
     try:
-        logger.info("Starting shop storage")
+        logger.info("Starting shop storage with new workflow")
 
         # Scan all items from current shopping list
         response = shopping_list_table.scan()
@@ -47,9 +52,20 @@ def lambda_handler(event, context):
             response = shopping_list_table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
             items.extend(response.get('Items', []))
 
-        logger.info(f"Found {len(items)} items to store")
+        logger.info(f"Found {len(items)} total items")
 
-        if len(items) == 0:
+        # Filter to only Gianluca and Nicole
+        allowed_users = ['Gianluca', 'Nicole']
+        user_items = [item for item in items if item.get('userId') in allowed_users]
+
+        # Separate ticked (bought) from non-ticked items
+        ticked_items = [item for item in user_items if item.get('bought') is True]
+        non_ticked_items = [item for item in user_items if item.get('bought') is not True]
+
+        logger.info(f"Ticked items (to save to history): {len(ticked_items)}")
+        logger.info(f"Non-ticked items (to keep): {len(non_ticked_items)}")
+
+        if len(ticked_items) == 0:
             return {
                 'statusCode': 400,
                 'headers': {
@@ -57,8 +73,8 @@ def lambda_handler(event, context):
                     'Access-Control-Allow-Origin': '*'
                 },
                 'body': json.dumps({
-                    'error': 'No items to store',
-                    'message': 'Shopping list is empty'
+                    'error': 'No ticked items to save',
+                    'message': 'Please tick items you purchased before saving your shop'
                 })
             }
 
@@ -68,19 +84,16 @@ def lambda_handler(event, context):
         shop_date = shop_date_full.isoformat() + 'Z'
         today_date = shop_date_full.strftime('%Y-%m-%d')  # Date only for querying
 
-        # Delete previous shops from today
+        # Delete previous shops from today (optional - keeps only one shop per day)
         logger.info(f"Checking for previous shops from today: {today_date}")
         try:
-            # Query all shops from today
             scan_response = shop_history_table.scan()
             today_shops = scan_response.get('Items', [])
 
-            # Handle pagination
             while 'LastEvaluatedKey' in scan_response:
                 scan_response = shop_history_table.scan(ExclusiveStartKey=scan_response['LastEvaluatedKey'])
                 today_shops.extend(scan_response.get('Items', []))
 
-            # Filter to only shops from today
             for shop in today_shops:
                 shop_date_str = shop.get('shopDate', '')
                 if shop_date_str.startswith(today_date):
@@ -93,23 +106,18 @@ def lambda_handler(event, context):
                     )
         except Exception as e:
             logger.warning(f"Error deleting previous shops: {str(e)}")
-            # Continue even if deletion fails
 
-        # Filter to only Gianluca and Nicole
-        allowed_users = ['Gianluca', 'Nicole']
-        filtered_items = [item for item in items if item.get('userId') in allowed_users]
-
-        # Calculate totals - handle both Decimal and float types
-        total_items = len(filtered_items)
+        # Calculate totals for ticked items only
+        total_items = len(ticked_items)
         total_price = Decimal('0')
-        for item in filtered_items:
+        for item in ticked_items:
             price = item.get('estimatedPrice', 0)
             if isinstance(price, Decimal):
                 total_price += price * item.get('quantity', 1)
             else:
                 total_price += Decimal(str(price)) * item.get('quantity', 1)
 
-        # Create shop history record
+        # Create shop history record (only ticked items)
         shop_record = {
             'shopId': shop_id,
             'shopDate': shop_date,
@@ -118,10 +126,9 @@ def lambda_handler(event, context):
             'items': []
         }
 
-        # Add each item with all details
-        for item in filtered_items:
+        # Add each ticked item to shop history
+        for item in ticked_items:
             price = item.get('estimatedPrice', 0)
-            # Convert to Decimal if not already
             if not isinstance(price, Decimal):
                 price = Decimal(str(price)) if price else Decimal('0')
 
@@ -132,14 +139,30 @@ def lambda_handler(event, context):
                 'quantity': item.get('quantity', 1),
                 'estimatedPrice': price,
                 'category': item.get('category', 'Uncategorized'),
-                'bought': item.get('bought', False)
+                'bought': True  # All items in history were bought
             }
             shop_record['items'].append(shop_item)
 
         # Store in ShopHistory table
         shop_history_table.put_item(Item=shop_record)
+        logger.info(f"Shop {shop_id} saved to history with {total_items} items, £{total_price:.2f}")
 
-        logger.info(f"Successfully stored shop {shop_id} with {total_items} items, total: £{total_price:.2f}")
+        # DELETE ticked items from shopping list
+        deleted_count = 0
+        for item in ticked_items:
+            try:
+                shopping_list_table.delete_item(
+                    Key={
+                        'userId': item['userId'],
+                        'itemId': item['itemId']
+                    }
+                )
+                deleted_count += 1
+            except Exception as e:
+                logger.error(f"Error deleting item {item.get('itemId')}: {str(e)}")
+
+        logger.info(f"Deleted {deleted_count} ticked items from shopping list")
+        logger.info(f"Kept {len(non_ticked_items)} non-ticked items for next shop")
 
         return {
             'statusCode': 201,
@@ -148,13 +171,15 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps({
-                'message': 'Shop stored successfully',
+                'message': 'Shop saved successfully',
                 'shop': {
                     'shopId': shop_id,
                     'shopDate': shop_date,
                     'totalItems': total_items,
                     'totalPrice': float(total_price)
-                }
+                },
+                'itemsDeleted': deleted_count,
+                'itemsKept': len(non_ticked_items)
             })
         }
 

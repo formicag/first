@@ -141,6 +141,22 @@ def lambda_handler(event, context):
                 expression_attribute_names['#boughtDate'] = 'boughtDate'
                 expression_attribute_values[':boughtDate'] = None
 
+        # Handle saveForNext status update
+        if 'saveForNext' in body:
+            save_for_next_value = body['saveForNext']
+            if not isinstance(save_for_next_value, bool):
+                logger.error(f"Invalid saveForNext value: {save_for_next_value}")
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({
+                        'error': 'saveForNext field must be a boolean'
+                    })
+                }
+
+            update_expression_parts.append('#saveForNext = :saveForNext')
+            expression_attribute_names['#saveForNext'] = 'saveForNext'
+            expression_attribute_values[':saveForNext'] = save_for_next_value
+
         # Check if there are any fields to update
         if not update_expression_parts:
             logger.error("No fields to update")
