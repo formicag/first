@@ -56,3 +56,6 @@ htmlcov/
 
 # macOS
 .DS_Store
+
+# Separate file management application (not part of shopping list)
+filemgmt-and-duplicate-detector/

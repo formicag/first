@@ -2,7 +2,69 @@
 
 All notable changes to the Shopping List Application.
 
-## [Recent Updates] - 2025-10-10
+## [Major Shopping Workflow Redesign] - 2025-10-12
+
+### Added - Realistic Shopping Workflow
+- **"Save for Next Shop" Feature** (📌/🔖 button on each item)
+  - New `saveForNext` boolean field in DynamoDB schema
+  - Click to mark recurring items (milk, bread, etc.)
+  - Items marked saveForNext move to bottom of list
+  - Auto-restore to proper position when unmarked
+
+- **Complete Shopping Workflow**
+  - 5-step realistic shopping process:
+    1. Build list
+    2. Mark recurring items (save for next shop)
+    3. Tick items as you add to physical basket
+    4. Click "Save My Shop" to finalize
+    5. List is ready for next shopping trip
+
+- **Visual Item States**
+  - Normal items: Full color, bright text
+  - Ticked items (bought): Crossed out, very faded (opacity 0.5)
+  - Save for next items: Greyed out (opacity 0.6), bookmark icon (🔖), at bottom
+
+- **Smart Sorting System**
+  - Regular items: Store layout order (entrance → back)
+  - Save for next items: Bottom of each user's list
+  - Auto-resort when toggling save status
+
+### Changed - Shop Storage Behavior
+- **Complete Rewrite of `storeShop.py`**
+  - NOW: Only saves TICKED items (bought=True) to shop history
+  - NOW: DELETES ticked items from shopping list after saving
+  - NOW: KEEPS items marked saveForNext (saved for next shop)
+  - NOW: KEEPS items NOT ticked (items not purchased)
+  - Result: List automatically ready for next shopping trip
+
+- **Button Text Update**
+  - Changed: "Store Today's Shop" → "💾 Save My Shop"
+  - More intuitive for realistic shopping workflow
+
+- **UI Organization**
+  - Removed category headers from main list for cleaner UI
+  - Items still sorted by store layout (entrance to back)
+  - Category grouping removed, but optimal shopping order maintained
+
+### Enhanced - AI Categorization
+- **Form-Specific Categorization** in `createItem.py`
+  - Distinguishes between fresh, canned, and frozen items
+  - Example: "tuna" → "Canned & Jarred" (not Fish & Seafood)
+  - Example: "frozen peas" → "Frozen Foods"
+  - Example: "fresh salmon" → "Fish & Seafood"
+  - Improved prompt with explicit form detection rules
+
+### Fixed
+- **Lambda Import Error** for `getItems.py`
+  - Fixed GitHub Actions deployment to include `store_layout.py` dependency
+  - Updated `.github/workflows/deploy.yml` packaging logic
+
+- **Tuna Categorization Issue**
+  - Fixed: "Tuna cans" now correctly categorized as "Canned & Jarred"
+  - Enhanced AI prompt with form-specific rules
+  - Manual recategorization of existing items
+
+## [Store Layout Optimization] - 2025-10-10
 
 ### Added
 - **AI Caching Utility** (`lambda/ai_cache.py`)

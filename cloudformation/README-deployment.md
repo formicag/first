@@ -68,12 +68,18 @@ main-stack.yaml (Root Stack)
 ## Stack Structure
 
 ### 1. Storage Stack (`storage-stack.yaml`)
-- **Resources**: DynamoDB table
-- **Outputs**: TableName, TableArn
+- **Resources**:
+  - DynamoDB table: `ShoppingList` (active shopping items)
+  - DynamoDB table: `ShoppingList-ShopHistory-Dev` (shop history)
+- **Outputs**: TableName, TableArn, HistoryTableName, HistoryTableArn
 - **Features**:
   - Point-in-time recovery enabled
   - Server-side encryption enabled
-  - Pay-per-request or provisioned billing
+  - Pay-per-request billing (on-demand)
+- **Schema Updates**:
+  - Added `saveForNext` boolean field (save for next shop)
+  - Added `estimatedPrice` decimal field (Sainsbury's UK prices)
+  - Added `boughtDate` timestamp field (when item was ticked)
 
 ### 2. Auth Stack (`auth-stack.yaml`)
 - **Resources**: Cognito User Pool, User Pool Client
@@ -96,16 +102,19 @@ main-stack.yaml (Root Stack)
 ### 5. Compute Stack (`compute-stack.yaml`)
 - **Resources**:
   - IAM execution role with DynamoDB, Bedrock, SES, and CloudWatch permissions
-  - 9 Lambda functions:
-    - **CreateItem** - Create items with AI processing (spell check, emoji, price, category)
-    - **GetItems** - Retrieve all items
-    - **UpdateItem** - Update item properties
+  - 12 Lambda functions:
+    - **CreateItem** - Create items with AI processing (spell check, capitalization, price, category)
+    - **GetItems** - Retrieve items sorted by store layout (entrance to back)
+    - **UpdateItem** - Update item properties (supports saveForNext flag)
     - **DeleteItem** - Delete items
     - **EmailList** - Send email notifications
-    - **CategorizeItems** - AI bulk categorization
+    - **CategorizeItems** - AI bulk categorization (with form-specific rules)
     - **ImprovePrompt** - AI prompt enrichment
-    - **RecalculatePrices** - Bulk price recalculation with AI
-    - **StoreShop** - Store shop history snapshots
+    - **RecalculatePrices** - Bulk price recalculation with AI (Sainsbury's UK pricing)
+    - **StoreShop** - Store shop history (NEW: only saves ticked items)
+    - **GetShopHistory** - Retrieve shop history records
+    - **DeleteShop** - Delete individual shops
+    - **store_layout.py** - Shared module for store layout sorting (packaged with GetItems)
 - **Outputs**: Function ARNs, Role ARN
 - **Note**: Contains placeholder code - actual code must be deployed separately via GitHub Actions or AWS CLI
 
@@ -217,13 +226,45 @@ aws cloudformation describe-stack-events \
 
 ### Step 5: Deploy Lambda Function Code
 
-The Lambda functions are created with placeholder code. Deploy actual code:
+The Lambda functions are created with placeholder code. Deploy actual code using GitHub Actions CI/CD (recommended) or manually via AWS CLI.
+
+#### Option A: Automated Deployment via GitHub Actions (Recommended)
+
+The application uses GitHub Actions for automated CI/CD deployment. Every push to `main` branch automatically:
+1. Packages Lambda functions (includes dependencies like `store_layout.py`)
+2. Deploys to AWS Lambda
+3. Syncs website files to S3
+4. Invalidates CloudFront cache
+
+**Setup GitHub Actions:**
+
+1. Add repository secrets in GitHub:
+   - Go to https://github.com/formicag/first/settings/secrets/actions
+   - Add: `AWS_REGION` = `eu-west-1`
+   - Add: `AWS_ACCOUNT_ID` = `016164185850`
+
+2. GitHub Actions OIDC role already configured: `GitHubActionsDeployRole`
+
+3. Push to trigger deployment:
+   ```bash
+   git add .
+   git commit -m "Deploy shopping list application"
+   git push origin main
+   ```
+
+4. Monitor at: https://github.com/formicag/first/actions
+
+**Deployment time:** 20-30 seconds
+
+#### Option B: Manual Deployment via AWS CLI
+
+If not using GitHub Actions, deploy manually:
 
 ```bash
 cd ../lambda
 
 # Package and deploy each function
-for func in createItem getItems updateItem deleteItem emailList categorizeItems improvePrompt recalculatePrices storeShop; do
+for func in createItem updateItem deleteItem emailList categorizeItems improvePrompt recalculatePrices storeShop getShopHistory deleteShop; do
   # Create deployment package
   zip ${func}.zip ${func}.py cognito_helper.py
 
@@ -234,9 +275,19 @@ for func in createItem getItems updateItem deleteItem emailList categorizeItems 
     --region eu-west-1 \
     --profile AdministratorAccess-016164185850
 done
+
+# Special case: getItems requires store_layout.py dependency
+zip getItems.zip getItems.py store_layout.py
+aws lambda update-function-code \
+  --function-name ShoppingList-GetItems \
+  --zip-file fileb://getItems.zip \
+  --region eu-west-1 \
+  --profile AdministratorAccess-016164185850
 ```
 
-Note: Function names follow pattern: `{ProjectName}-{Environment}-{FunctionName}`
+**Important:** `getItems` Lambda requires `store_layout.py` module for store layout sorting.
+
+Note: Function names follow pattern: `ShoppingList-{FunctionName}`
 
 ### Step 6: Upload Website Files
 
@@ -375,11 +426,17 @@ For AI-powered features to work, enable Bedrock model access:
 
 **AI Features Enabled**:
 - Automatic spell checking and capitalization
-- Emoji assignment for items
-- Sainsbury's UK price estimation
-- UK supermarket category assignment
+- Sainsbury's UK price estimation (2024-2025 pricing)
+- UK supermarket category assignment (16 categories)
+- Form-specific categorization (fresh vs canned vs frozen)
+- Store layout optimization (entrance to back of store)
 - Bulk price recalculation
 - Custom prompt enrichment
+
+**October 2025 AI Improvements**:
+- Distinguishes between "tuna" (canned) and "fresh salmon" (fish section)
+- Enhanced prompt with explicit form detection rules
+- More accurate categorization for UK supermarkets
 
 ## Updating Stacks
 
@@ -431,11 +488,13 @@ aws cloudfront create-invalidation \
 
 ### Important Notes
 - Deleting stacks will **permanently delete all data**
-- DynamoDB tables will be deleted
+- DynamoDB tables will be deleted (shopping list + shop history)
 - S3 buckets must be emptied before deletion
 - CloudFront distributions can take 15+ minutes to delete
 
-### Delete Order
+**For complete decommissioning guide, see: [DECOMMISSIONING.md](../DECOMMISSIONING.md)**
+
+### Quick Delete Steps
 
 1. **Empty S3 buckets**:
 ```bash
@@ -445,7 +504,7 @@ aws s3 rm s3://${BUCKET_NAME} --recursive --profile AdministratorAccess-01616418
 2. **Delete main stack** (deletes all nested stacks):
 ```bash
 aws cloudformation delete-stack \
-  --stack-name ShoppingList-Dev \
+  --stack-name ShoppingList-Main-Stack \
   --region eu-west-1 \
   --profile AdministratorAccess-016164185850
 ```
@@ -453,40 +512,56 @@ aws cloudformation delete-stack \
 3. **Monitor deletion**:
 ```bash
 aws cloudformation describe-stacks \
-  --stack-name ShoppingList-Dev \
+  --stack-name ShoppingList-Main-Stack \
   --region eu-west-1 \
   --profile AdministratorAccess-016164185850
 ```
 
 Stack will show `DELETE_COMPLETE` when finished, then disappear from the list.
 
+**See [DECOMMISSIONING.md](../DECOMMISSIONING.md) for:**
+- Data backup before deletion
+- Complete decommissioning checklist
+- Orphaned resource cleanup
+- Cost verification after deletion
+- Rollback/restore procedures
+
 ## Estimated Costs
 
 ### Monthly Cost Breakdown (Approximate)
+
+**Current Production Usage** (2 users - Gianluca & Nicole):
+- DynamoDB (On-Demand, 2 tables): ~£0.50/month
+- Lambda (12 functions, light usage): ~£0.30/month
+- Bedrock (Claude 3 Haiku for AI features): ~£1-2/month
+- S3/CloudFront (website hosting): ~£0.10/month
+- API Gateway: Free tier covers usage
+- **Total: ~£2-3/month**
 
 **Free Tier Eligible** (first 12 months):
 - DynamoDB: 25 GB storage, 200M requests/month
 - Lambda: 1M requests, 400,000 GB-seconds
 - API Gateway: 1M requests
 - CloudFront: 50 GB data transfer
-- Cognito: 50,000 MAU
+- Cognito: 50,000 MAU (not currently used - bypassed)
 
 **After Free Tier** (Low Usage - ~100 users, 1000 requests/day):
-- DynamoDB (On-Demand): $1-5/month
-- Lambda: $0.50-2/month
-- API Gateway: $3-10/month
-- CloudFront: $1-5/month
-- S3: $0.50-1/month
-- Cognito: Free (first 50,000 MAU)
-- SES: $0.10 per 1,000 emails
-- Bedrock (Claude 3 Haiku): $0.00025 per 1K input tokens, $0.00125 per 1K output tokens
+- DynamoDB (On-Demand): £1-5/month
+- Lambda: £0.50-2/month
+- API Gateway: £3-10/month
+- CloudFront: £1-5/month
+- S3: £0.50-1/month
+- Bedrock (Claude 3 Haiku): £0.00025 per 1K input tokens, £0.00125 per 1K output tokens
+- SES: £0.10 per 1,000 emails (rarely used)
 
-**Estimated Total**: $5-25/month for low usage
+**Estimated Total**: £5-25/month for low usage
 
 **High Usage** (1000 users, 10,000 requests/day):
-- Total: $50-150/month
+- Total: £50-150/month
 
 **CloudWatch Billing Alarms**: Configured at $10, $20, $30, $50, $100
+
+**Note:** Application can handle 100+ users without changes. AI caching available if Bedrock costs exceed £2/month.
 
 ### Cost Optimization Tips
 1. Use DynamoDB on-demand billing for variable workloads

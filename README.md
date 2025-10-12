@@ -1,160 +1,268 @@
 # Shopping List Application
 
-A serverless shopping list web application built with AWS services, featuring AI-powered categorization, email notifications, and multi-user support.
+A serverless shopping list web application built with AWS services, featuring AI-powered categorization, intelligent store layout ordering, and realistic shopping workflow management.
 
 **Live Application**: https://shoppinglist.gianlucaformica.net
 
 ## Overview
 
-Full-stack serverless application demonstrating AWS cloud architecture, CI/CD automation, and modern web development practices. Features include real-time CRUD operations, AI-powered item categorization, and automatic deployment via GitHub Actions.
+Full-stack serverless application demonstrating AWS cloud architecture, CI/CD automation, and modern web development practices. Features include real-time CRUD operations, AI-powered item processing, store layout optimization, and a complete shopping workflow from list building to shop history tracking.
 
 ## Features
 
-### Core Functionality
-- ✅ **Multi-User Shopping Lists**: View and manage shopping lists for multiple users (Gianluca & Nicole)
-- ✅ **Real-time CRUD Operations**: Add, update, mark as bought, and delete items
-- ✅ **AI-Powered Item Processing**: Amazon Bedrock (Claude 3 Haiku) automatically:
+### Core Shopping Workflow
+- ✅ **Realistic Shopping Experience**: Complete workflow matching real-world shopping:
+  1. Build your shopping list
+  2. Mark items "Save for Next Shop" (📌/🔖) for recurring items
+  3. Tick items as you add them to your physical basket while shopping
+  4. Click "Save My Shop" to:
+     - Save ticked items to shop history
+     - Remove purchased items from list
+     - Keep "save for next" items for next week
+     - Keep unticked items (things you didn't buy)
+  5. List is ready for next shopping trip
+
+- ✅ **Multi-User Shopping Lists**: Separate lists for Gianluca & Nicole
+  - User-specific color coding (blue for Luca, pink for Nicole)
+  - Per-user price totals and item counts
+  - Combined household total in header
+
+- ✅ **Store Layout Optimization**:
+  - Items ordered by physical store layout (entrance to back of store)
+  - Configurable via drag-and-drop Store Layout Settings page
+  - Default Sainsbury's layout with 16 category positions
+  - Items grouped by distance from entrance for efficient shopping
+  - "Save for next shop" items automatically move to bottom
+
+### AI-Powered Features
+- ✅ **Intelligent Item Processing**: Amazon Bedrock (Claude 3 Haiku) automatically:
   - Corrects spelling mistakes
-  - Capitalizes item names
-  - Assigns emojis to items
-  - Estimates Sainsbury's UK prices
-  - Categorizes into UK supermarket aisles
-- ✅ **Price Management**:
-  - Automatic price estimation when adding items
-  - Bulk price recalculation for all items
-  - Real-time total price calculation per user and combined
-  - Total prices displayed in header row for quick visibility
-- ✅ **Shop History**: Store complete shopping list snapshots with date, time, items, and total price
-  - One-click "Store Today's Shop" button in header
-  - Preserves complete state of shopping list at time of storage
-- ✅ **Customizable AI Prompts**: Configure custom instructions and household-specific terminology
-- ✅ **Email Lists**: Send shopping lists via Amazon SES
-- ✅ **Grouped Display**: Items organized by user and category
-- ✅ **Dark Theme UI**: Modern GitHub-inspired dark theme across all pages
-  - Main shopping list page
-  - Login page
-  - AI Prompt Manager page
-  - Consistent color scheme: #0d1117 background, #c9d1d9 text, #8957e5 purple accents
+  - Capitalizes item names properly
+  - Estimates Sainsbury's UK prices (2024-2025 pricing)
+  - Categorizes into 16 UK supermarket aisles
+  - Distinguishes between fresh, canned, and frozen items
+  - Example: "tuna" → categorized as "Canned & Jarred" (not fresh fish)
+
+- ✅ **Customizable AI Prompts**:
+  - Configure custom instructions for categorization
+  - Household-specific terminology support
+  - UK English spelling enforcement
+  - Accessible via "Configure AI Prompt" button
+
+- ✅ **Bulk Operations**:
+  - Recalculate all prices with one click
+  - AI updates prices for all items in database
+
+### Shop History & Analytics
+- ✅ **Shop History Tracking**:
+  - Complete snapshots of purchased items
+  - Date, time, items, quantities, and total price
+  - One shop per day (overwrites if shopping multiple times)
+  - Accessible via Shopping Dashboard
+
+- ✅ **Shopping Dashboard**:
+  - View all saved shops (latest to oldest)
+  - Delete individual shops
+  - Last shop summary with total spending
+  - Top 10 category spending analysis with visual bars
+  - All-time statistics (total shops, spending, averages)
+
+### Price Management
+- ✅ **Automatic Price Estimation**:
+  - AI estimates Sainsbury's UK prices when adding items
+  - Considers typical package sizes
+  - Real-time total calculation per user and combined
+  - Price displayed next to each item
+
+- ✅ **Price Recalculation**:
+  - Bulk update all item prices via AI
+  - Uses current Sainsbury's 2024-2025 pricing
+  - Updates entire database with one click
+
+### Store Layout Configuration
+- ✅ **Store Layout Settings** (new dedicated page):
+  - Drag-and-drop category reordering
+  - Position 1 = entrance, Position 16 = back of store
+  - Visual indicators (position numbers, category icons)
+  - Save custom layout or reset to default Sainsbury's
+  - Affects main list ordering automatically
+
+### User Interface
+- ✅ **Dark Theme UI**: Modern GitHub-inspired dark theme
+  - Consistent across all pages
+  - Primary: #0d1117, Cards: #161b22, Text: #c9d1d9
+  - Purple accents (#8957e5), Green success, Red errors
+
+- ✅ **Visual Item States**:
+  - **Normal**: Full color, bright text
+  - **Ticked (bought)**: Crossed out, very faded (opacity 0.5)
+  - **Save for next shop**: Greyed out, bookmark icon (🔖), at bottom of list
+
+- ✅ **Smart Sorting**:
+  - Regular items: Store layout order (entrance → back)
+  - Save for next items: Bottom of each user's list
+  - Auto-resort when toggling save status
 
 ### Technical Features
-- ✅ **Serverless Architecture**: Built entirely on AWS serverless services
-- ✅ **CI/CD Pipeline**: Automated deployment via GitHub Actions with OIDC authentication
-- ✅ **Infrastructure as Code**: Complete CloudFormation templates with nested stacks
-- ✅ **Simple Access**: No authentication required
-- ✅ **Global CDN**: CloudFront distribution for fast worldwide access
-- ✅ **API Gateway**: RESTful API with no authorization required
-- ✅ **Future-Ready Optimizations**: AI caching and modular prompts ready when scale increases
-- ✅ **Configurable AI Model**: Switch Bedrock models via environment variables
+- ✅ **Serverless Architecture**: 100% AWS serverless
+- ✅ **CI/CD Pipeline**: GitHub Actions with OIDC (20-30 second deploys)
+- ✅ **Infrastructure as Code**: CloudFormation nested stacks
+- ✅ **No Authentication**: Simple public access
+- ✅ **Global CDN**: CloudFront for worldwide performance
+- ✅ **RESTful API**: API Gateway with 12 endpoints
+- ✅ **Real-time Updates**: Instant UI refresh after operations
 
 ## Architecture
 
 ### Frontend
 - **Technology**: Vanilla JavaScript, HTML5, CSS3
-- **Hosting**: Amazon S3 static website hosting
-- **CDN**: Amazon CloudFront distribution
+- **Pages**:
+  - `index.html` - Main shopping list
+  - `dashboard.html` - Shop history and analytics
+  - `store-layout.html` - Store layout configuration
+  - `prompt-manager.html` - AI prompt customization
+- **Hosting**: Amazon S3 static website
+- **CDN**: Amazon CloudFront
 - **Domain**: Custom domain via CloudFront
 
 ### Backend
 - **Compute**: AWS Lambda (Python 3.11)
 - **Database**: Amazon DynamoDB
-  - `ShoppingList` - Active shopping list items
+  - `ShoppingList` - Active shopping items (with saveForNext flag)
   - `ShoppingList-ShopHistory-Dev` - Historical shop snapshots
 - **API**: Amazon API Gateway (REST API)
-- **AI/ML**: Amazon Bedrock (Claude 3 Haiku for item processing, categorization, and price estimation)
+- **AI/ML**: Amazon Bedrock (Claude 3 Haiku)
 - **Email**: Amazon SES
 
 ### DevOps
 - **Version Control**: GitHub ([formicag/first](https://github.com/formicag/first))
 - **CI/CD**: GitHub Actions with AWS OIDC
-- **IAC**: AWS CloudFormation with nested stacks
+- **IAC**: AWS CloudFormation (nested stacks)
 - **Monitoring**: CloudWatch Logs
 
 ## Project Structure
 
 ```
 first/
-├── website/                    # Frontend application (all pages use dark theme)
-│   ├── index.html             # Main shopping list page (dark theme)
-│   ├── prompt-manager.html    # AI prompt configuration page (dark theme)
+├── website/                    # Frontend application
+│   ├── index.html             # Main shopping list page
+│   ├── dashboard.html         # Shop history & analytics
+│   ├── store-layout.html      # Store layout configuration
+│   ├── prompt-manager.html    # AI prompt customization
 │   ├── app.js                 # Main application logic
-│   └── styles.css             # Dark theme styling (GitHub-inspired)
+│   ├── dashboard.js           # Dashboard logic
+│   ├── store-layout.js        # Drag-and-drop layout manager
+│   └── styles.css             # Dark theme styling
 ├── lambda/                     # Backend Lambda functions
-│   ├── createItem.py          # Create new items with AI processing (spell check, emoji, price, category)
-│   ├── getItems.py            # Retrieve items (scans all users)
-│   ├── updateItem.py          # Update item status
+│   ├── createItem.py          # Create items with AI processing
+│   ├── getItems.py            # Retrieve items (sorted by store layout)
+│   ├── updateItem.py          # Update item (supports saveForNext flag)
 │   ├── deleteItem.py          # Delete items
 │   ├── emailList.py           # Send email with shopping list
-│   ├── categorizeItems.py     # AI-powered bulk categorization
-│   ├── improvePrompt.py       # AI prompt enrichment system
-│   ├── recalculatePrices.py   # Bulk price recalculation with AI
-│   ├── storeShop.py           # Store shop history snapshot
-│   ├── ai_cache.py            # AI response caching utility (ready for activation)
-│   └── prompt_utils.py        # Modular prompt builder (ready for use)
+│   ├── categorizeItems.py     # AI bulk categorization
+│   ├── improvePrompt.py       # AI prompt enrichment
+│   ├── recalculatePrices.py   # Bulk AI price updates
+│   ├── storeShop.py           # Store shop (NEW: only saves ticked items)
+│   ├── getShopHistory.py      # Retrieve shop history
+│   ├── deleteShop.py          # Delete individual shops
+│   ├── store_layout.py        # Store layout sorting module
+│   └── cognito_helper.py      # Cognito utilities (legacy)
 ├── cloudformation/             # Infrastructure as Code
 │   ├── main-stack.yaml        # Main nested stack
-│   ├── dynamodb-stack.yaml    # DynamoDB table
-│   ├── lambda-stack.yaml      # Lambda functions
-│   ├── api-gateway-stack.yaml # API Gateway
-│   ├── s3-cloudfront-stack.yaml # Frontend hosting
-│   └── README-deployment.md   # Original deployment docs
+│   ├── dynamodb-stack.yaml    # DynamoDB tables
+│   ├── compute-stack.yaml     # Lambda functions
+│   ├── api-stack.yaml         # API Gateway
+│   └── s3-stack.yaml          # S3 & CloudFront
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml         # GitHub Actions CI/CD workflow
+│       └── deploy.yml         # CI/CD workflow
+├── README.md                  # This file
+├── CHANGELOG.md               # Version history
 ├── CI-CD-SETUP.md             # CI/CD setup guide
-├── OPTIMIZATION-OPPORTUNITIES.md # Future optimization strategies
-└── README.md                  # This file
+├── DECOMMISSIONING.md         # Decommissioning guide
+└── OPTIMIZATION-OPPORTUNITIES.md # Future optimizations
+
+Note: The filemgmt-and-duplicate-detector/ directory contains a separate
+file management utility and is not part of the shopping list application.
 ```
 
 ## AWS Resources
 
 ### DynamoDB Tables
 
-**ShoppingList** - Active shopping list items
+**ShoppingList** - Active shopping items
 - **Partition Key**: `userId` (String)
 - **Sort Key**: `itemId` (String)
 - **Attributes**:
-  - `itemName` - Item name (AI spell-checked and capitalized)
-  - `emoji` - AI-assigned emoji for the item
-  - `quantity` - Quantity of items
-  - `estimatedPrice` - Sainsbury's UK price estimate (Decimal)
-  - `category` - UK supermarket aisle category
-  - `bought` - Boolean flag for purchased items
-  - `addedDate` - ISO timestamp when item was added
+  - `itemName` - Item name (AI processed)
+  - `quantity` - Quantity
+  - `estimatedPrice` - Sainsbury's price (Decimal)
+  - `category` - UK supermarket aisle (16 categories)
+  - `bought` - Boolean (ticked in basket)
+  - `saveForNext` - Boolean (save for next shop)
+  - `addedDate` - ISO timestamp
+  - `boughtDate` - ISO timestamp (when ticked)
 
-**ShoppingList-ShopHistory-Dev** - Historical shop snapshots
+**ShoppingList-ShopHistory-Dev** - Shop history
 - **Partition Key**: `shopId` (String - UUID)
 - **Sort Key**: `shopDate` (String - ISO timestamp)
 - **Attributes**:
-  - `totalItems` - Number of items in shop
-  - `totalPrice` - Total estimated price (Decimal)
-  - `items` - Array of all items with full details (userId, itemName, emoji, quantity, estimatedPrice, category, bought)
+  - `totalItems` - Number of items purchased
+  - `totalPrice` - Total price (Decimal)
+  - `items` - Array of purchased items with full details
 
-### Lambda Functions
-- `ShoppingList-CreateItem` - Create new items with full AI processing (spell check, emoji, price, category)
-- `ShoppingList-GetItems` - Retrieve all items (table scan)
-- `ShoppingList-UpdateItem` - Update item properties
+### Lambda Functions (12 total)
+- `ShoppingList-CreateItem` - Create items with AI processing
+- `ShoppingList-GetItems` - Retrieve items (sorted by store layout)
+- `ShoppingList-UpdateItem` - Update items (supports saveForNext)
 - `ShoppingList-DeleteItem` - Delete items
-- `ShoppingList-EmailList` - Send email notifications via SES
-- `ShoppingList-CategorizeItems` - AI bulk categorization with Bedrock
-- `ShoppingList-ImprovePrompt` - AI prompt enrichment system
-- `ShoppingList-RecalculatePrices` - Bulk price recalculation with AI (Sainsbury's UK estimates)
-- `ShoppingList-StoreShop` - Store complete shopping list snapshot to history
+- `ShoppingList-EmailList` - Email lists via SES
+- `ShoppingList-CategorizeItems` - AI bulk categorization
+- `ShoppingList-ImprovePrompt` - AI prompt enrichment
+- `ShoppingList-RecalculatePrices` - Bulk price updates
+- `ShoppingList-StoreShop` - Save shop history (only ticked items)
+- `ShoppingList-GetShopHistory` - Retrieve shop history
+- `ShoppingList-DeleteShop` - Delete individual shops
 
-### API Gateway
-- **API ID**: `01mmfw29n0`
-- **Stage**: `dev`
-- **Base URL**: `https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev`
-- **Authorization**: NONE (open access)
-- **Endpoints**:
-  - `GET /items/{userId}?bought=all` - Get items (scans all users)
-  - `POST /items` - Create item with AI processing (spell check, emoji, price, category)
-  - `PUT /items/{userId}/{itemId}` - Update item
-  - `DELETE /items/{userId}/{itemId}` - Delete item
-  - `POST /email/{userId}` - Send email with shopping list
-  - `POST /categorize/{userId}` - AI bulk categorization
-  - `POST /improve-prompt` - AI prompt enrichment
-  - `POST /prices/recalculate` - Recalculate all item prices with AI
-  - `POST /shop/store` - Store shop snapshot to history
+### API Gateway Endpoints
+
+**Base URL**: `https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev`
+
+**Shopping List**:
+- `GET /items/{userId}?bought=all` - Get items (sorted by store layout)
+- `POST /items` - Create item with AI
+- `PUT /items/{userId}/{itemId}` - Update item (supports saveForNext)
+- `DELETE /items/{userId}/{itemId}` - Delete item
+
+**Shop Operations**:
+- `POST /shop/store` - Save shop (ticked items only)
+- `GET /shop/history?limit=10` - Get shop history
+- `DELETE /shop/{shopId}` - Delete shop
+
+**AI & Utilities**:
+- `POST /email/{userId}` - Send email
+- `POST /categorize/{userId}` - AI categorization
+- `POST /improve-prompt` - AI prompt improvement
+- `POST /prices/recalculate` - Recalculate all prices
+
+### Store Layout Categories (16 Total)
+
+Default Sainsbury's layout (position 1 = entrance, 16 = back):
+
+1. Health & Beauty
+2. Fresh Produce - Herbs & Salads
+3. Fresh Produce - Fruit
+4. Fresh Produce - Vegetables
+5. Meat & Poultry / Fish & Seafood
+6. Household & Cleaning / Baby & Child
+8. Dairy & Eggs
+9. Beverages
+10. Pantry & Dry Goods
+11. Canned & Jarred
+12. Bakery & Bread
+13. Alcohol & Wine
+14. Snacks & Confectionery
+16. Frozen Foods
 
 ### S3 & CloudFront
 - **S3 Bucket**: `shoppinglist.gianlucaformica.net`
@@ -162,51 +270,38 @@ first/
 - **Domain**: https://shoppinglist.gianlucaformica.net
 
 ### IAM Roles
-- **Lambda Execution**: `ShoppingListLambdaRole`
-  - DynamoDB access (ShoppingList and ShoppingList-ShopHistory-Dev tables)
-  - Bedrock model invocation (Claude 3 Haiku)
+- **Lambda**: `ShoppingListLambdaRole`
+  - DynamoDB access (both tables)
+  - Bedrock invocation
   - SES email sending
   - CloudWatch Logs
 - **GitHub Actions**: `GitHubActionsDeployRole` (OIDC)
 
 ## Deployment
 
-### Automatic Deployment (Current Method)
+### Automatic Deployment (Current)
 
-The application uses **GitHub Actions** for automated deployment:
+GitHub Actions automatically deploys on push to `main`:
 
-1. Make changes to code
-2. Commit and push to `main` branch:
-   ```bash
-   git add .
-   git commit -m "Your changes"
-   git push origin main
-   ```
-3. GitHub Actions automatically:
-   - Packages Lambda functions
-   - Deploys to AWS Lambda
-   - Syncs website files to S3
-   - Invalidates CloudFront cache
+```bash
+git add .
+git commit -m "Your changes"
+git push origin main
+```
+
+**What happens**:
+1. Packages Lambda functions (includes dependencies like `store_layout.py`)
+2. Deploys to AWS Lambda
+3. Syncs website files to S3
+4. Invalidates CloudFront cache
 
 **View deployments**: https://github.com/formicag/first/actions
 
 **Deployment time**: ~20-30 seconds
 
-
 ### Initial Infrastructure Setup
 
-The complete infrastructure was deployed using CloudFormation nested stacks:
-
-```bash
-aws cloudformation create-stack \
-  --stack-name ShoppingListApp \
-  --template-body file://cloudformation/main-stack.yaml \
-  --capabilities CAPABILITY_NAMED_IAM \
-  --profile AdministratorAccess-016164185850 \
-  --region eu-west-1
-```
-
-See [cloudformation/README-deployment.md](cloudformation/README-deployment.md) for full infrastructure deployment details.
+See [cloudformation/README-deployment.md](cloudformation/README-deployment.md) for full infrastructure deployment.
 
 ## Getting Started
 
@@ -215,7 +310,6 @@ See [cloudformation/README-deployment.md](cloudformation/README-deployment.md) f
 - AWS CLI v2 with SSO configured
 - GitHub account
 - AWS account (Account ID: `016164185850`)
-- Google Workspace configured as AWS SSO IdP
 
 ### AWS Authentication
 
@@ -223,79 +317,142 @@ See [cloudformation/README-deployment.md](cloudformation/README-deployment.md) f
 # Login via SSO
 aws sso login --profile AdministratorAccess-016164185850
 
-# Verify authentication
+# Verify
 aws sts get-caller-identity --profile AdministratorAccess-016164185850
 ```
 
 ### Local Development
 
-1. Clone the repository:
+1. **Clone repository**:
    ```bash
    git clone https://github.com/formicag/first.git
    cd first
    ```
 
-2. Make changes to files in `website/` or `lambda/`
+2. **Make changes** to `website/` or `lambda/`
 
-3. Test locally (Lambda functions can be tested with sample events)
-
-4. Push to GitHub to deploy:
+3. **Deploy**:
    ```bash
    git add .
-   git commit -m "Description of changes"
+   git commit -m "Description"
    git push origin main
    ```
 
+4. **Monitor**: Check GitHub Actions for deployment status
+
+## Usage Guide
+
+### Shopping Workflow
+
+**1. Build Your List**:
+- Click "Add Item" form
+- Enter item name (AI will spell-check, price, and categorize)
+- Select user (Luca or Nicole)
+- Click "Add Item"
+
+**2. Mark Recurring Items**:
+- Click 📌 button on items you always need (e.g., milk, bread)
+- Item turns grey with 🔖 bookmark and moves to bottom
+
+**3. While Shopping**:
+- Tick ☑ items as you add them to your physical basket
+- Items get crossed out and fade
+
+**4. After Shopping**:
+- Click "💾 Save My Shop" button
+- Ticked items → saved to history & removed from list
+- Save for next items → kept at bottom
+- Unticked items → kept on list (didn't purchase)
+
+**5. View History**:
+- Click "📊 Shopping Dashboard"
+- See all previous shops with dates and totals
+- Delete old shops if needed
+
+### Configure Store Layout
+
+1. Click "🏪 Store Layout Settings"
+2. Drag categories to match your store
+3. Position 1 = entrance, 16 = back
+4. Click "💾 Save Layout"
+5. Shopping list auto-updates to new order
+
+### Customize AI Behavior
+
+1. Click "⚙️ Configure AI Prompt"
+2. Add custom instructions
+3. Examples:
+   - "Always categorize eggs as Dairy & Eggs"
+   - "Treat gluten-free bread as Bakery & Bread"
+4. Click "💾 Save Instructions"
+
 ## Documentation
 
-- **[CI-CD-SETUP.md](CI-CD-SETUP.md)** - GitHub Actions CI/CD setup guide
-- **[OPTIMIZATION-OPPORTUNITIES.md](OPTIMIZATION-OPPORTUNITIES.md)** - Future optimization strategies and cost monitoring
-- **[cloudformation/README-deployment.md](cloudformation/README-deployment.md)** - Original infrastructure deployment
-- **[lambda/README.md](lambda/README.md)** - Lambda function documentation
+- **[README.md](README.md)** - This file (main documentation)
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and updates
+- **[CI-CD-SETUP.md](CI-CD-SETUP.md)** - GitHub Actions CI/CD setup
+- **[DECOMMISSIONING.md](DECOMMISSIONING.md)** - Tear down guide
+- **[OPTIMIZATION-OPPORTUNITIES.md](OPTIMIZATION-OPPORTUNITIES.md)** - Future optimizations
+- **[cloudformation/README-deployment.md](cloudformation/README-deployment.md)** - Infrastructure deployment
+- **[lambda/README.md](lambda/README.md)** - Lambda function details
 
 ## Current Status
 
-### CI/CD: Active
-- ✅ GitHub Actions workflow configured
-- ✅ OIDC authentication with AWS (no stored credentials)
-- ✅ Automatic deployment on push to `main`
-- ✅ Deploys Lambda functions and frontend in ~20-30 seconds
+### ✅ Production Ready
+- All features fully functional
+- CI/CD pipeline active
+- Store layout optimization live
+- Shopping workflow complete
+- Dashboard analytics working
+- AI categorization accurate
 
-### AI Configuration
-- **Model**: Claude 3 Haiku (configurable via `BEDROCK_MODEL` environment variable)
-- **Region**: eu-west-1
-- **Features**: Spell checking, emoji assignment, price estimation, categorization
-- **Cost Optimization**:
-  - AI caching utility ready for activation (see `lambda/ai_cache.py`)
-  - Modular prompt builder implemented (see `lambda/prompt_utils.py`)
-  - Current costs: ~£2-3/month (well-optimized for current scale)
-  - Comprehensive optimization guide: [OPTIMIZATION-OPPORTUNITIES.md](OPTIMIZATION-OPPORTUNITIES.md)
+### 💰 Costs
+- **Current**: ~£2-3/month
+- **Breakdown**:
+  - DynamoDB: ~£0.50/month (on-demand)
+  - Lambda: ~£0.30/month (generous free tier)
+  - Bedrock: ~£1-2/month (Claude 3 Haiku)
+  - S3/CloudFront: Minimal (~£0.10/month)
+  - API Gateway: Free tier covers usage
 
-### UI/UX Design
-- **Theme**: GitHub-inspired dark mode across all pages
-- **Colors**:
-  - Primary background: `#0d1117`
-  - Card background: `#161b22`
-  - Text: `#c9d1d9`
-  - Accent purple: `#8957e5`
-  - Success green: `#238636`
-  - Error red: `#da3633`
-- **Pages**:
-  - `index.html` - Main shopping list with grouped items
-  - `prompt-manager.html` - AI prompt configuration interface
+### 📊 Scale
+- **Current**: 2 users (Gianluca & Nicole)
+- **Capacity**: Can handle 100+ users without changes
+- **Optimization ready**: AI caching and modular prompts available
 
 ## Key Technologies
 
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
 - **Backend**: Python 3.11, AWS Lambda
 - **Database**: DynamoDB (2 tables)
-- **API**: API Gateway REST API (9 endpoints)
-- **AI/ML**: Amazon Bedrock (Claude 3 Haiku for spell check, emoji assignment, price estimation, categorization)
+- **API**: API Gateway REST API (12 endpoints)
+- **AI/ML**: Amazon Bedrock (Claude 3 Haiku)
 - **Email**: Amazon SES
 - **Hosting**: S3 + CloudFront
 - **CI/CD**: GitHub Actions with OIDC
 - **IAC**: CloudFormation (nested stacks)
 
+## Recent Updates
+
+**October 2025** - Major Shopping Workflow Redesign:
+- Added "Save for Next Shop" functionality (📌/🔖)
+- Implemented realistic shopping workflow (tick → save → clean)
+- Store layout optimization with drag-and-drop configuration
+- "Save My Shop" only saves ticked items (not everything)
+- Automatic item sorting (regular items on top, saved items at bottom)
+- Grey-out styling for saved items
+- Shopping dashboard with history and analytics
+- AI improvements: distinguish canned vs fresh items
+
+See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+
 ## License
 
 This is a demonstration project for educational purposes.
+
+## Support
+
+For issues or questions:
+- Check documentation in this repo
+- Review CloudWatch logs for Lambda errors
+- Check GitHub Actions for deployment issues

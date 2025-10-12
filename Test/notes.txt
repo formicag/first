@@ -1,2 +1,0 @@
-Different content here about data science.
-Data science combines statistics, programming, and domain expertise.
