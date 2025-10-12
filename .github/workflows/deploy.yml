@@ -39,7 +39,13 @@ jobs:
           # Package each modified function
           for func in createItem getItems updateItem deleteItem emailList categorizeItems improvePrompt recalculatePrices storeShop getShopHistory deleteShop; do
             echo "Packaging ${func}..."
-            zip ${func}.zip ${func}.py
+
+            # For getItems, include store_layout.py dependency
+            if [ "$func" = "getItems" ]; then
+              zip ${func}.zip ${func}.py store_layout.py
+            else
+              zip ${func}.zip ${func}.py
+            fi
 
             echo "Deploying ${func}..."
             aws lambda update-function-code \
