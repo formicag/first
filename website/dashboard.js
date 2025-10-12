@@ -103,6 +103,18 @@ async function loadDashboardData() {
                     </div>
                 </div>
 
+                <!-- Shop History List -->
+                <div class="dashboard-card last-shop-section">
+                    <div class="card-header">
+                        <span class="card-icon">📜</span>
+                        <span>All Saved Shops</span>
+                    </div>
+                    <div id="message-container"></div>
+                    <div class="shop-history-list">
+                        ${renderShopHistoryList(shops)}
+                    </div>
+                </div>
+
                 <!-- Last Shop Details -->
                 <div class="dashboard-card last-shop-section">
                     <div class="card-header">
@@ -115,6 +127,9 @@ async function loadDashboardData() {
                 </div>
             </div>
         `;
+
+        // Attach delete event listeners after rendering
+        attachDeleteHandlers();
 
     } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -215,6 +230,104 @@ function renderShopItems(items) {
             <div class="shop-item-price">£${(item.estimatedPrice || 0).toFixed(2)}</div>
         </div>
     `).join('');
+}
+
+/**
+ * Render shop history list
+ * @param {Array} shops - Array of shop records
+ * @returns {string} - HTML string
+ */
+function renderShopHistoryList(shops) {
+    if (shops.length === 0) {
+        return '<p class="empty-state">No shops saved yet</p>';
+    }
+
+    return shops.map(shop => `
+        <div class="shop-history-item" data-shop-id="${shop.shopId}">
+            <div class="shop-history-info">
+                <div class="shop-date">${formatDate(shop.shopDate)}</div>
+                <div class="shop-meta">
+                    <span class="shop-meta-item">📦 ${shop.totalItems} items</span>
+                </div>
+            </div>
+            <div class="shop-price">£${(shop.totalPrice || 0).toFixed(2)}</div>
+            <button class="btn-delete-shop" data-shop-id="${shop.shopId}" data-shop-date="${formatDate(shop.shopDate)}">
+                🗑️ Delete
+            </button>
+        </div>
+    `).join('');
+}
+
+/**
+ * Attach delete event handlers to all delete buttons
+ */
+function attachDeleteHandlers() {
+    const deleteButtons = document.querySelectorAll('.btn-delete-shop');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', handleDeleteShop);
+    });
+}
+
+/**
+ * Handle delete shop button click
+ * @param {Event} event - Click event
+ */
+async function handleDeleteShop(event) {
+    const button = event.currentTarget;
+    const shopId = button.dataset.shopId;
+    const shopDate = button.dataset.shopDate;
+
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete the shop from ${shopDate}?`)) {
+        return;
+    }
+
+    // Disable button during deletion
+    button.disabled = true;
+    button.textContent = '⏳ Deleting...';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/shop/${shopId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Show success message
+        showMessage('Shop deleted successfully!', 'success');
+
+        // Reload dashboard data after short delay
+        setTimeout(() => {
+            loadDashboardData();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Error deleting shop:', error);
+        showMessage('Failed to delete shop. Please try again.', 'error');
+
+        // Re-enable button on error
+        button.disabled = false;
+        button.textContent = '🗑️ Delete';
+    }
+}
+
+/**
+ * Show message to user
+ * @param {string} message - Message text
+ * @param {string} type - Message type ('success' or 'error')
+ */
+function showMessage(message, type) {
+    const container = document.getElementById('message-container');
+    const className = type === 'success' ? 'success-message' : 'error-message';
+
+    container.innerHTML = `<div class="${className}">${message}</div>`;
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        container.innerHTML = '';
+    }, 3000);
 }
 
 /**
