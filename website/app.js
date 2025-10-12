@@ -120,22 +120,7 @@ function renderGroupedItems(items) {
     sortedUsers.forEach(userId => {
         const userItems = groupedByUser[userId];
 
-        // Group items by category for this user
-        const grouped = {};
-        userItems.forEach(item => {
-            const category = item.category || 'Uncategorized';
-            if (!grouped[category]) {
-                grouped[category] = [];
-            }
-            grouped[category].push(item);
-        });
-
-        const sortedCategories = Object.keys(grouped).sort((a, b) => {
-            if (a === 'Uncategorized') return 1;
-            if (b === 'Uncategorized') return -1;
-            return a.localeCompare(b);
-        });
-
+        // Items are already sorted by store layout from the API
         // Add user header with basket emoji right-aligned and person emoji
         const userEmoji = userId === 'Gianluca' ? '👨' : '👩';
         const userColorClass = userId === 'Gianluca' ? 'user-gianluca' : 'user-nicole';
@@ -154,17 +139,9 @@ function renderGroupedItems(items) {
         html += `<span class="user-header-count">🛒 ${userItems.length}</span>`;
         html += `</div>`;
 
-        // Add categories for this user
-        sortedCategories.forEach(category => {
-            const categoryItems = grouped[category].sort((a, b) => {
-                if (a.bought === b.bought) return 0;
-                return a.bought ? 1 : -1;
-            });
-
-            html += `<div class="category-group">`;
-            html += `<div class="category-header">${escapeHtml(category)}</div>`;
-            html += categoryItems.map(item => createItemHTML(item)).join('');
-            html += `</div>`;
+        // Add items for this user (sorted by store layout, no category headers)
+        userItems.forEach(item => {
+            html += createItemHTML(item);
         });
 
         html += `</div>`; // Close user-group
