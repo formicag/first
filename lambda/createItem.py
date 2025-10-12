@@ -267,7 +267,14 @@ TASK 3 - Price Estimation:
 TASK 4 - Categorization:
 - Categorize into ONE of these UK shopping centre aisles: {categories_str}
 - Use standard UK supermarket terminology
-- Think about where this would be found in a typical Tesco, Sainsbury's, or Asda"""
+- Think about where this would be found in a typical Tesco, Sainsbury's, or Asda
+- IMPORTANT: Consider the form/preparation:
+  * Fresh items (fresh fish, fresh meat, fresh produce) → use Fresh/Fish/Meat categories
+  * Canned items (tinned tuna, canned beans, jarred sauce) → use "Canned & Jarred"
+  * Frozen items (frozen peas, ice cream) → use "Frozen Foods"
+  * Ambient packaged items (pasta, rice, flour) → use "Pantry & Dry Goods"
+- If item name includes "tuna" without specifying fresh → assume CANNED (goes to "Canned & Jarred")
+- If item name includes "salmon" without specifying fresh → assume FRESH (goes to "Fish & Seafood")"""
     else:
         base_prompt += f"""
 TASK 4 - Categorization:
