@@ -37,9 +37,9 @@ jobs:
           cd lambda
 
           # Package each modified function
-          for func in createItem getItems updateItem deleteItem emailList categorizeItems improvePrompt recalculatePrices storeShop; do
+          for func in createItem getItems updateItem deleteItem emailList categorizeItems improvePrompt recalculatePrices storeShop getShopHistory; do
             echo "Packaging ${func}..."
-            zip ${func}.zip ${func}.py cognito_helper.py
+            zip ${func}.zip ${func}.py
 
             echo "Deploying ${func}..."
             aws lambda update-function-code \
