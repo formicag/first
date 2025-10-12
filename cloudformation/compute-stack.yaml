@@ -324,6 +324,33 @@ Resources:
         - Key: ManagedBy
           Value: CloudFormation
 
+  # Lambda Function: Get Shop History
+  GetShopHistoryFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-${Environment}-GetShopHistory'
+      Description: Retrieve shop history records
+      Runtime: python3.11
+      Handler: getShopHistory.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: !Ref LambdaTimeout
+      MemorySize: !Ref LambdaMemorySize
+      Environment:
+        Variables:
+          SHOP_HISTORY_TABLE: !Ref ShopHistoryTableName
+      Code:
+        ZipFile: |
+          # Placeholder - deploy actual code using AWS CLI or CI/CD
+          def lambda_handler(event, context):
+              return {'statusCode': 501, 'body': 'Not implemented - deploy actual code'}
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
 Outputs:
   CreateItemFunctionArn:
     Description: ARN of CreateItem Lambda function
@@ -372,6 +399,12 @@ Outputs:
     Value: !GetAtt StoreShopFunction.Arn
     Export:
       Name: !Sub '${AWS::StackName}-StoreShopArn'
+
+  GetShopHistoryFunctionArn:
+    Description: ARN of GetShopHistory Lambda function
+    Value: !GetAtt GetShopHistoryFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-GetShopHistoryArn'
 
   LambdaExecutionRoleArn:
     Description: ARN of Lambda execution role

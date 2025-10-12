@@ -49,6 +49,10 @@ Parameters:
     Type: String
     Description: ARN of StoreShop Lambda function
 
+  GetShopHistoryFunctionArn:
+    Type: String
+    Description: ARN of GetShopHistory Lambda function
+
 Resources:
   # API Gateway REST API
   RestApi:
@@ -154,6 +158,14 @@ Resources:
       RestApiId: !Ref RestApi
       ParentId: !Ref ShopResource
       PathPart: store
+
+  # Resource: /shop/history
+  ShopHistoryResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref ShopResource
+      PathPart: history
 
   # Method: POST /items
   CreateItemMethod:
@@ -261,6 +273,21 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StoreShopFunctionArn}/invocations'
 
+  # Method: GET /shop/history
+  GetShopHistoryMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref ShopHistoryResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.querystring.limit: false
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetShopHistoryFunctionArn}/invocations'
+
   # Lambda Permissions
   CreateItemPermission:
     Type: AWS::Lambda::Permission
@@ -326,6 +353,14 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
 
+  GetShopHistoryPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetShopHistoryFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*'
+
   # API Gateway Deployment
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
@@ -338,6 +373,7 @@ Resources:
       - CategorizeItemsMethod
       - RecalculatePricesMethod
       - StoreShopMethod
+      - GetShopHistoryMethod
     Properties:
       RestApiId: !Ref RestApi
       Description: !Sub 'Deployment for ${Environment} environment'

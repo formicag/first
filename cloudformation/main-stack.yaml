@@ -213,6 +213,7 @@ Resources:
         CategorizeItemsFunctionArn: !GetAtt ComputeStack.Outputs.CategorizeItemsFunctionArn
         RecalculatePricesFunctionArn: !GetAtt ComputeStack.Outputs.RecalculatePricesFunctionArn
         StoreShopFunctionArn: !GetAtt ComputeStack.Outputs.StoreShopFunctionArn
+        GetShopHistoryFunctionArn: !GetAtt ComputeStack.Outputs.GetShopHistoryFunctionArn
       Tags:
         - Key: Project
           Value: !Ref ProjectName
