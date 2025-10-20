@@ -21,16 +21,24 @@ async function loadDashboardData() {
     const contentContainer = document.getElementById('dashboard-content');
 
     try {
-        // Fetch current shopping list items
-        const currentListPromise = fetch(`${API_BASE_URL}/items?bought=unbought`).then(r => r.json());
+        // Fetch current shopping list items for all users (unbought only)
+        const gianlucaItemsPromise = fetch(`${API_BASE_URL}/items/Gianluca?bought=unbought`).then(r => r.json());
+        const nicoleItemsPromise = fetch(`${API_BASE_URL}/items/Nicole?bought=unbought`).then(r => r.json());
 
         // Fetch shop history (last 10 shops)
         const shopHistoryPromise = fetch(`${API_BASE_URL}/shop/history?limit=10`).then(r => r.json());
 
-        // Wait for both requests
-        const [currentListData, shopHistoryData] = await Promise.all([currentListPromise, shopHistoryPromise]);
+        // Wait for all requests
+        const [gianlucaData, nicoleData, shopHistoryData] = await Promise.all([
+            gianlucaItemsPromise,
+            nicoleItemsPromise,
+            shopHistoryPromise
+        ]);
 
-        const currentItems = currentListData.items || [];
+        // Combine items from both users
+        const gianlucaItems = gianlucaData.items || [];
+        const nicoleItems = nicoleData.items || [];
+        const currentItems = [...gianlucaItems, ...nicoleItems];
         const shops = shopHistoryData.shops || [];
 
         // Analyze current shopping list by category
