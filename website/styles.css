@@ -315,6 +315,34 @@ header h1 {
     transform: none;
 }
 
+.btn-recategorize-items {
+    width: 100%;
+    padding: 8px 16px;
+    background: #8957e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+}
+
+.btn-recategorize-items:hover {
+    background: #9d6df0;
+}
+
+.btn-recategorize-items:active {
+    background: #7540d9;
+}
+
+.btn-recategorize-items:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .btn-configure-ai {
     width: 100%;
     padding: 8px 16px;

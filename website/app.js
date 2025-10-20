@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupStoreShopHandler();
     setupEmailButtonHandler();
     setupRecalculatePricesHandler();
+    setupRecategorizeItemsHandler();
     setupAIConfigHandler();
     setupUserDropdownHandler();
 });
@@ -502,6 +503,13 @@ function setupFormHandler() {
                 body: JSON.stringify(payload)
             });
 
+            // Handle duplicate item error (409 Conflict)
+            if (response.status === 409) {
+                const errorData = await response.json();
+                showDuplicateModal(errorData.message);
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -617,7 +625,7 @@ function setupStoreShopHandler() {
     const button = document.getElementById('store-shop-btn');
 
     button.addEventListener('click', async () => {
-        if (!confirm('Save your shop? This will:\n\n✓ Save ticked items (in basket) to shop history\n✓ Remove ticked items from current list\n✓ Keep items marked for next shop\n✓ Keep items not ticked (not purchased)')) {
+        if (!confirm('Save your shop? This will:\n\n✓ Save ticked items (in basket) to shop history\n✓ Untick items and keep them on your list for next time\n✓ All items stay on your shopping list')) {
             return;
         }
 
@@ -702,6 +710,54 @@ function setupRecalculatePricesHandler() {
         } finally {
             button.disabled = false;
             button.textContent = '💷 Recalculate All Prices';
+        }
+    });
+}
+
+/**
+ * Setup recategorize items button handler
+ */
+function setupRecategorizeItemsHandler() {
+    const button = document.getElementById('recategorize-items-btn');
+
+    button.addEventListener('click', async () => {
+        if (!confirm('Recategorize ALL items using AI? This will update the category for every item in your database based on current AI categorization logic.')) {
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = '🤖 AI Recategorizing...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/categorize/recalculate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Reload items to show new categories
+            await loadUserItems();
+
+            showNotification(
+                `✓ Recategorization complete! Updated ${data.recategorizedCount} items (${data.categoryChangesCount} categories changed).`,
+                'success',
+                5000
+            );
+
+        } catch (error) {
+            console.error('Error recategorizing items:', error);
+            showNotification('✗ Failed to recategorize items. Please try again.', 'error', 5000);
+
+        } finally {
+            button.disabled = false;
+            button.textContent = '🏷️ Recategorize All Items';
         }
     });
 }
@@ -808,4 +864,70 @@ function showNotification(message, type = 'success', duration = 3000) {
     setTimeout(() => {
         div.remove();
     }, duration);
+}
+
+/**
+ * Show duplicate item modal
+ */
+function showDuplicateModal(message) {
+    // Create modal overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'duplicate-modal-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+
+    // Create modal content
+    const modal = document.createElement('div');
+    modal.className = 'duplicate-modal';
+    modal.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 400px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    `;
+
+    // Add warning icon and message
+    modal.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+        <h2 style="margin: 0 0 15px 0; color: #ff4757;">Item Already Exists</h2>
+        <p style="margin: 0 0 25px 0; font-size: 16px; color: #2c3e50;">${escapeHtml(message)}</p>
+        <button id="duplicate-ok-btn" style="
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        ">OK</button>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Handle OK button click
+    const okBtn = document.getElementById('duplicate-ok-btn');
+    okBtn.addEventListener('click', () => {
+        document.body.removeChild(overlay);
+    });
+
+    // Handle clicking outside modal
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            document.body.removeChild(overlay);
+        }
+    });
 }
