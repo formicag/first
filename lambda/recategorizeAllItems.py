@@ -22,20 +22,25 @@ table = dynamodb.Table('ShoppingList')
 # Bedrock model configuration
 BEDROCK_MODEL_ID = 'anthropic.claude-3-haiku-20240307-v1:0'
 
-# Standard grocery categories
-CATEGORIES = [
+# UK Shopping Centre Standard Categories (16 Total)
+# These MUST match store_layout.py exactly for proper sorting
+UK_CATEGORIES = [
     "Fresh Produce - Fruit",
     "Fresh Produce - Vegetables",
-    "Fresh Produce - Herbs",
-    "Bakery",
-    "Meat Fish & Deli",
+    "Fresh Produce - Herbs & Salads",
+    "Meat & Poultry",
+    "Fish & Seafood",
     "Dairy & Eggs",
+    "Bakery & Bread",
     "Frozen Foods",
-    "Pantry / Dry Goods",
+    "Pantry & Dry Goods",
+    "Canned & Jarred",
     "Snacks & Confectionery",
     "Beverages",
+    "Alcohol & Wine",
+    "Health & Beauty",
     "Household & Cleaning",
-    "Health & Beauty"
+    "Baby & Child"
 ]
 
 
@@ -196,10 +201,18 @@ def categorize_item_with_bedrock(item_name):
         dict: Dictionary with 'category' key
     """
     # Create prompt for Bedrock
-    categories_str = ", ".join(CATEGORIES)
-    prompt = f"""You are categorizing grocery items. For this item: '{item_name}'
+    categories_str = ", ".join(UK_CATEGORIES)
+    prompt = f"""You are categorizing grocery items for a UK supermarket. For this item: '{item_name}'
 
-Categorize into ONE of these categories: {categories_str}, Unknown Category.
+Categorize into ONE of these UK shopping centre aisles: {categories_str}
+
+IMPORTANT - Consider the form/preparation:
+- Fresh items (fresh fish, fresh meat, fresh produce) → use Fresh/Fish/Meat categories
+- Canned items (tinned tuna, canned beans, jarred sauce) → use "Canned & Jarred"
+- Frozen items (frozen peas, ice cream) → use "Frozen Foods"
+- Ambient packaged items (pasta, rice, flour) → use "Pantry & Dry Goods"
+- If item includes "tuna" without specifying fresh → assume CANNED (goes to "Canned & Jarred")
+- If item includes "salmon" without specifying fresh → assume FRESH (goes to "Fish & Seafood")
 
 Return ONLY valid JSON in this exact format:
 {{"category": "category name"}}"""
@@ -233,15 +246,15 @@ Return ONLY valid JSON in this exact format:
         # Parse JSON response
         try:
             result = json.loads(response_text)
-            category = result.get('category', 'Unknown Category')
+            category = result.get('category', 'Uncategorized')
         except json.JSONDecodeError as je:
             logger.error(f"Invalid JSON response from Bedrock for item '{item_name}': {response_text}")
-            category = 'Unknown Category'
+            category = 'Uncategorized'
 
         # Validate category is in our list
-        if category not in CATEGORIES and category != 'Unknown Category':
-            logger.warning(f"Bedrock returned invalid category '{category}' for item '{item_name}'. Using 'Unknown Category'.")
-            category = 'Unknown Category'
+        if category not in UK_CATEGORIES and category != 'Uncategorized':
+            logger.warning(f"Bedrock returned invalid category '{category}' for item '{item_name}'. Using 'Uncategorized'.")
+            category = 'Uncategorized'
 
         return {
             'category': category
@@ -250,5 +263,5 @@ Return ONLY valid JSON in this exact format:
     except Exception as e:
         logger.error(f"Error calling Bedrock for item '{item_name}': {str(e)}")
         return {
-            'category': 'Unknown Category'
+            'category': 'Uncategorized'
         }
