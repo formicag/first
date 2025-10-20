@@ -21,37 +21,68 @@ async function loadDashboardData() {
     const contentContainer = document.getElementById('dashboard-content');
 
     try {
+        // Fetch current shopping list items
+        const currentListPromise = fetch(`${API_BASE_URL}/items?bought=unbought`).then(r => r.json());
+
         // Fetch shop history (last 10 shops)
-        const response = await fetch(`${API_BASE_URL}/shop/history?limit=10`);
+        const shopHistoryPromise = fetch(`${API_BASE_URL}/shop/history?limit=10`).then(r => r.json());
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Wait for both requests
+        const [currentListData, shopHistoryData] = await Promise.all([currentListPromise, shopHistoryPromise]);
 
-        const data = await response.json();
-        const shops = data.shops || [];
+        const currentItems = currentListData.items || [];
+        const shops = shopHistoryData.shops || [];
 
-        if (shops.length === 0) {
+        // Analyze current shopping list by category
+        const currentCategoryBreakdown = analyzeCurrentListByCategory(currentItems);
+        const currentTotalPrice = currentCategoryBreakdown.reduce((sum, cat) => sum + cat.totalPrice, 0);
+        const currentTotalItems = currentItems.length;
+
+        // Check if we have any data to show
+        if (shops.length === 0 && currentItems.length === 0) {
             contentContainer.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">📦</div>
-                    <h2>No Shopping History</h2>
-                    <p>You haven't saved any shops yet. Start by storing your first shop from the main shopping list page!</p>
+                    <h2>No Data Available</h2>
+                    <p>You haven't saved any shops yet and your current shopping list is empty.</p>
+                    <p>Start by adding items to your shopping list from the main page!</p>
                 </div>
             `;
             return;
         }
 
-        // Get the most recent shop
-        const lastShop = shops[0];
+        // Get the most recent shop (if exists)
+        const lastShop = shops.length > 0 ? shops[0] : null;
 
         // Analyze all shops for category spending
-        const categoryAnalysis = analyzeCategorySpending(shops);
+        const categoryAnalysis = shops.length > 0 ? analyzeCategorySpending(shops) : [];
         const totalSpending = categoryAnalysis.reduce((sum, cat) => sum + cat.totalPrice, 0);
 
         // Generate dashboard HTML
         contentContainer.innerHTML = `
-            <!-- Shop History List - Top Section -->
+            <!-- Current Shopping List Breakdown - Top Section -->
+            ${currentItems.length > 0 ? `
+            <div class="dashboard-card shop-history-section">
+                <div class="card-header">
+                    <span class="card-icon">🛒</span>
+                    <span>Current Shopping List by Category</span>
+                </div>
+                <div class="stat-row" style="background: #0d1117; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <span class="stat-label">Total Items</span>
+                    <span class="stat-value highlight">${currentTotalItems}</span>
+                </div>
+                <div class="stat-row" style="background: #0d1117; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <span class="stat-label">Estimated Total</span>
+                    <span class="stat-value price">£${currentTotalPrice.toFixed(2)}</span>
+                </div>
+                <div class="category-list">
+                    ${renderCategoryAnalysis(currentCategoryBreakdown)}
+                </div>
+            </div>
+            ` : ''}
+
+            <!-- Shop History List - Second Section -->
+            ${shops.length > 0 ? `
             <div class="dashboard-card shop-history-section">
                 <div class="card-header">
                     <span class="card-icon">📜</span>
@@ -62,8 +93,10 @@ async function loadDashboardData() {
                     ${renderShopHistoryList(shops)}
                 </div>
             </div>
+            ` : ''}
 
             <div class="dashboard-grid">
+                ${lastShop ? `
                 <!-- Summary Stats -->
                 <div class="dashboard-card">
                     <div class="card-header">
@@ -108,7 +141,7 @@ async function loadDashboardData() {
                 <div class="dashboard-card last-shop-section">
                     <div class="card-header">
                         <span class="card-icon">🏆</span>
-                        <span>Top Spending Categories</span>
+                        <span>Top Spending Categories (All Shops)</span>
                     </div>
                     <div class="category-list">
                         ${renderCategoryAnalysis(categoryAnalysis)}
@@ -125,11 +158,14 @@ async function loadDashboardData() {
                         ${renderShopItems(lastShop.items || [])}
                     </div>
                 </div>
+                ` : ''}
             </div>
         `;
 
         // Attach delete event listeners after rendering
-        attachDeleteHandlers();
+        if (shops.length > 0) {
+            attachDeleteHandlers();
+        }
 
     } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -140,6 +176,39 @@ async function loadDashboardData() {
             </div>
         `;
     }
+}
+
+/**
+ * Analyze current shopping list by category
+ * @param {Array} items - Array of shopping list items
+ * @returns {Array} - Array of category analysis objects
+ */
+function analyzeCurrentListByCategory(items) {
+    const categoryTotals = {};
+
+    // Aggregate items by category
+    items.forEach(item => {
+        const category = item.category || 'Uncategorized';
+        const price = parseFloat(item.estimatedPrice || 0);
+        const quantity = parseInt(item.quantity || 1);
+
+        if (!categoryTotals[category]) {
+            categoryTotals[category] = {
+                name: category,
+                totalPrice: 0,
+                itemCount: 0
+            };
+        }
+
+        categoryTotals[category].totalPrice += (price * quantity);
+        categoryTotals[category].itemCount += 1;
+    });
+
+    // Convert to array and sort by total price (descending)
+    const categories = Object.values(categoryTotals);
+    categories.sort((a, b) => b.totalPrice - a.totalPrice);
+
+    return categories;
 }
 
 /**
