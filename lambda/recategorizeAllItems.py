@@ -9,6 +9,7 @@ import json
 import boto3
 from boto3.dynamodb.conditions import Key, Attr
 import logging
+import time
 
 # Configure logging
 logger = logging.getLogger()
@@ -103,8 +104,12 @@ def lambda_handler(event, context):
         recategorized_count = 0
         category_changes = []
         errors = []
+        skipped_count = 0
 
         for idx, item in enumerate(all_items, 1):
+            # Add delay to avoid Bedrock throttling (except for first item)
+            if idx > 1:
+                time.sleep(0.8)  # 800ms delay between API calls
             try:
                 item_name = item.get('itemName', 'Unknown')
                 old_category = item.get('category', 'No category')
@@ -155,10 +160,18 @@ def lambda_handler(event, context):
                 error_msg = f"Error recategorizing item {item.get('itemName', 'Unknown')}: {str(e)}"
                 logger.error(f"  ❌ ERROR: {error_msg}")
                 errors.append(error_msg)
+                skipped_count += 1
+
+        # Calculate success metrics
+        total_items = len(all_items)
+        successful_items = recategorized_count
+        failed_items = total_items - successful_items
 
         logger.info(f"=" * 80)
         logger.info(f"RECATEGORIZATION COMPLETE")
-        logger.info(f"Total items processed: {recategorized_count}")
+        logger.info(f"Total items found: {total_items}")
+        logger.info(f"Successfully processed: {successful_items}")
+        logger.info(f"Failed/Skipped: {failed_items}")
         logger.info(f"Categories changed: {len(category_changes)}")
         logger.info(f"Errors: {len(errors)}")
 
@@ -182,11 +195,15 @@ def lambda_handler(event, context):
             },
             'body': json.dumps({
                 'message': f'Recategorization complete',
+                'totalItems': total_items,
+                'successfulItems': successful_items,
+                'failedItems': failed_items,
                 'recategorizedCount': recategorized_count,
-                'totalFound': len(all_items),
                 'categoryChangesCount': len(category_changes),
                 'categoryChanges': category_changes[:20],  # Limit to first 20 for response size
-                'errors': errors if errors else None
+                'errors': errors[:10] if errors else None,  # Limit to first 10 errors
+                'hasErrors': len(errors) > 0,
+                'completed': failed_items == 0
             })
         }
 

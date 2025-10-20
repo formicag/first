@@ -745,10 +745,23 @@ function setupRecategorizeItemsHandler() {
             // Reload items to show new categories
             await loadUserItems();
 
+            // Build detailed message
+            let message = '';
+            if (data.completed) {
+                // All items processed successfully
+                message = `✓ Successfully processed ${data.successfulItems} of ${data.totalItems} items!\n`;
+                message += `   ${data.categoryChangesCount} categories were updated.`;
+            } else {
+                // Some items failed
+                message = `⚠ Processed ${data.successfulItems} of ${data.totalItems} items.\n`;
+                message += `   ${data.failedItems} items failed or were skipped.\n`;
+                message += `   ${data.categoryChangesCount} categories were updated.`;
+            }
+
             showNotification(
-                `✓ Recategorization complete! Updated ${data.recategorizedCount} items (${data.categoryChangesCount} categories changed).`,
-                'success',
-                5000
+                message,
+                data.completed ? 'success' : 'warning',
+                7000
             );
 
         } catch (error) {
