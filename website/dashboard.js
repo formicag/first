@@ -22,8 +22,8 @@ async function loadDashboardData() {
 
     try {
         // Fetch current shopping list items for all users (unbought only)
-        const gianlucaItemsPromise = fetch(`${API_BASE_URL}/items/Gianluca?bought=unbought`).then(r => r.json());
-        const nicoleItemsPromise = fetch(`${API_BASE_URL}/items/Nicole?bought=unbought`).then(r => r.json());
+        const gianlucaItemsPromise = fetch(`${API_BASE_URL}/items/Gianluca?bought=false`).then(r => r.json());
+        const nicoleItemsPromise = fetch(`${API_BASE_URL}/items/Nicole?bought=false`).then(r => r.json());
 
         // Fetch shop history (last 10 shops)
         const shopHistoryPromise = fetch(`${API_BASE_URL}/shop/history?limit=10`).then(r => r.json());
