@@ -57,8 +57,8 @@ def lambda_handler(event, context):
         dict: Response with status code and recategorization summary
     """
     try:
-        # Extract userId from path parameters (or default to 'all')
-        path_params = event.get('pathParameters', {})
+        # Extract userId from path parameters or body (or default to 'all')
+        path_params = event.get('pathParameters') or {}
         user_id = path_params.get('userId', 'all')
 
         logger.info(f"Recategorizing ALL items for user: {user_id}")
