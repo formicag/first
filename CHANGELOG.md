@@ -2,6 +2,48 @@
 
 All notable changes to the Shopping List Application.
 
+## [Recategorize All Items Feature] - 2025-10-20
+
+### Added
+- **Recategorize All Items Button** in main menu
+  - New "🏷️ Recategorize All Items" button in action buttons section
+  - Purple button styling to distinguish from other actions
+  - One-click recategorization of ALL items in database using AI
+
+- **New Lambda Function**: `recategorizeAllItems.py`
+  - Retrieves ALL items from DynamoDB (not just uncategorized)
+  - Uses Amazon Bedrock (Claude 3 Haiku) to recategorize each item
+  - Tracks category changes and reports statistics
+  - Located at `lambda/recategorizeAllItems.py`
+
+- **New API Endpoint**: `POST /categorize/recalculate`
+  - Deployed to API Gateway with CORS support
+  - Returns count of recategorized items and category changes
+  - Base URL: `https://01mmfw29n0.execute-api.eu-west-1.amazonaws.com/dev`
+
+- **Deployment Script**: `deploy-recategorize-endpoint.sh`
+  - Automated deployment for Lambda function and API endpoint
+  - Creates Lambda function with proper IAM permissions
+  - Configures API Gateway resources and CORS
+
+### Enhanced
+- **Frontend UI**
+  - Added button to `website/index.html:63`
+  - Implemented handler in `website/app.js:720`
+  - Shows loading state: "🤖 AI Recategorizing..."
+  - Displays success notification with statistics
+  - Auto-refreshes list to show updated categories
+
+- **Button Styling** in `website/styles.css:318`
+  - Purple theme (#8957e5) matching dashboard accent color
+  - Hover and active states for better UX
+  - Disabled state during processing
+
+### Use Case
+- Allows bulk recategorization when category logic is updated
+- Useful for fixing incorrectly categorized items across entire database
+- Complements existing `categorizeItems.py` which only processes uncategorized items
+
 ## [Major Shopping Workflow Redesign] - 2025-10-12
 
 ### Added - Realistic Shopping Workflow

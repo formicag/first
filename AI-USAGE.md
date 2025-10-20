@@ -4,7 +4,14 @@ This document explains how artificial intelligence is integrated into the Shoppi
 
 ## Overview
 
-The application uses **Amazon Bedrock** with **Claude 3 Haiku** to provide intelligent categorization and spelling correction for shopping list items.
+The application uses **Amazon Bedrock** with **Claude 3 Haiku** to provide intelligent categorization, spelling correction, and price estimation for shopping list items.
+
+### AI Features
+
+1. **Auto-Categorize Items** - Categorize only uncategorized items with AI
+2. **Recategorize ALL Items** - Recategorize every item in the database using current AI logic
+3. **Auto-Create Items** - AI processing when adding new items (spell-check, price estimate, categorize)
+4. **Recalculate Prices** - Update all item prices using current Sainsbury's estimates
 
 ---
 
@@ -26,7 +33,7 @@ Amazon Bedrock is AWS's fully managed service that provides access to foundation
 
 ---
 
-## Feature: Auto-Categorize Shopping Items
+## Feature 1: Auto-Categorize Shopping Items (Uncategorized Only)
 
 ### Where It's Used
 
@@ -34,7 +41,7 @@ Amazon Bedrock is AWS's fully managed service that provides access to foundation
 
 **API Endpoint**: `POST /categorize/{userId}`
 
-**Frontend Button**: "🤖 Auto-Categorize Items" in `website/index.html`
+**Frontend Button**: "🤖 Auto-Categorize Items" (legacy - not currently visible in UI)
 
 ### What It Does
 
@@ -121,6 +128,96 @@ Assigns items to appropriate grocery categories based on semantic understanding:
    - Success message shows how many items were categorized
    - Lists spelling corrections: `'Kambucha' → 'Kombucha'`
    - Refreshes the view to show newly categorized items grouped by category
+
+---
+
+## Feature 2: Recategorize ALL Items
+
+### Where It's Used
+
+**Lambda Function**: `lambda/recategorizeAllItems.py`
+
+**API Endpoint**: `POST /categorize/recalculate`
+
+**Frontend Button**: "🏷️ Recategorize All Items" in `website/index.html`
+
+### What It Does
+
+When a user clicks the "Recategorize All Items" button, the AI recategorizes **EVERY item** in the database, not just uncategorized ones. This is useful for:
+- Fixing incorrectly categorized items across the entire database
+- Applying updated categorization logic to all existing items
+- Cleaning up categories after AI prompt improvements
+
+### How It Differs from Auto-Categorize
+
+| Feature | Auto-Categorize | Recategorize ALL |
+|---------|----------------|------------------|
+| **Scope** | Only uncategorized items | ALL items in database |
+| **Use Case** | Initial categorization | Bulk recategorization |
+| **Lambda** | `categorizeItems.py` | `recategorizeAllItems.py` |
+| **Endpoint** | `POST /categorize/{userId}` | `POST /categorize/recalculate` |
+| **Spelling** | Corrects spelling | No spelling changes |
+| **Output** | Spelling corrections + counts | Category changes + counts |
+
+### Step-by-Step Process
+
+1. **User Action**
+   - User clicks "🏷️ Recategorize All Items" button
+   - Confirms action in dialog
+   - Frontend sends POST request to `/categorize/recalculate`
+
+2. **Lambda Retrieves ALL Items**
+   ```python
+   # Get ALL items, regardless of category status
+   response = table.scan()
+   all_items = response.get('Items', [])
+   ```
+
+3. **AI Categorization Loop**
+   For each item:
+   ```python
+   old_category = item.get('category', 'No category')
+   result = categorize_item_with_bedrock(item_name)
+   new_category = result['category']
+
+   # Track changes
+   if old_category != new_category:
+       category_changes.append({
+           'itemName': item_name,
+           'oldCategory': old_category,
+           'newCategory': new_category
+       })
+   ```
+
+4. **Update DynamoDB**
+   ```python
+   table.update_item(
+       Key={'userId': item['userId'], 'itemId': item['itemId']},
+       UpdateExpression='SET category = :category',
+       ExpressionAttributeValues={':category': result['category']}
+   )
+   ```
+
+5. **Frontend Display**
+   - Success message shows statistics:
+     - Total items recategorized
+     - Number of category changes
+   - List auto-refreshes to show updated categories
+   - Example: "✓ Recategorization complete! Updated 45 items (12 categories changed)."
+
+### Performance Considerations
+
+- **Processing Time**: ~0.5 seconds per item
+  - 10 items: ~5 seconds
+  - 50 items: ~25 seconds
+  - 100 items: ~50 seconds
+
+- **Cost**: Same as auto-categorize (~$0.0005 per item)
+
+- **Lambda Configuration**:
+  - Timeout: 120 seconds
+  - Memory: 512 MB
+  - Handles up to ~200 items in single execution
 
 ---
 
@@ -461,11 +558,22 @@ The Lambda function needs Bedrock permissions:
 
 ## Related Files
 
+### Auto-Categorize (Uncategorized Only)
 - **Lambda Function**: `lambda/categorizeItems.py`
-- **Frontend Integration**: `website/app.js` (lines 420-484)
-- **UI Button**: `website/index.html` (line with "Auto-Categorize Items")
+- **Frontend Integration**: `website/app.js`
 - **CloudFormation**: `cloudformation/compute-stack.yaml` (Bedrock permissions)
-- **Deployment**: Automatically deployed via GitHub Actions
+
+### Recategorize ALL Items
+- **Lambda Function**: `lambda/recategorizeAllItems.py`
+- **API Endpoint**: `POST /categorize/recalculate`
+- **Frontend Integration**: `website/app.js:720` (setupRecategorizeItemsHandler)
+- **UI Button**: `website/index.html:63`
+- **Button Styling**: `website/styles.css:318`
+- **Deployment Script**: `deploy-recategorize-endpoint.sh`
+
+### Deployment
+- **CI/CD**: Automatically deployed via GitHub Actions
+- **Manual Deploy**: Use deployment scripts for new endpoints
 
 ---
 
@@ -483,10 +591,19 @@ The Lambda function needs Bedrock permissions:
 The Shopping List application uses **Amazon Bedrock with Claude 3 Haiku** to provide:
 
 ✅ **Automatic categorization** of grocery items into 12 standard categories
+✅ **Bulk recategorization** of ALL items in database with one click
 ✅ **Spelling correction** for common typos and mistakes
+✅ **Price estimation** for Sainsbury's UK items
 ✅ **Context understanding** (recognizes brand names and synonyms)
-✅ **One-click operation** with real-time feedback
+✅ **One-click operations** with real-time feedback
 ✅ **Cost-effective** processing (~$0.0005 per item)
 ✅ **Serverless** and scalable architecture
+
+### AI-Powered Features Available
+
+1. **Auto-Categorize Items** - Categorize uncategorized items only
+2. **Recategorize ALL Items** - Recategorize entire database (NEW)
+3. **Auto-Create with AI** - Spell-check, categorize, and price items on creation
+4. **Recalculate Prices** - Update all item prices using current estimates
 
 This demonstrates practical AI integration in a serverless web application using AWS managed services.

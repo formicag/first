@@ -51,7 +51,8 @@ Full-stack serverless application demonstrating AWS cloud architecture, CI/CD au
 
 - ✅ **Bulk Operations**:
   - Recalculate all prices with one click
-  - AI updates prices for all items in database
+  - Recategorize all items with one click
+  - AI updates prices and categories for all items in database
 
 ### Shop History & Analytics
 - ✅ **Shop History Tracking**:
@@ -159,7 +160,8 @@ first/
 │   ├── updateItem.py          # Update item (supports saveForNext flag)
 │   ├── deleteItem.py          # Delete items
 │   ├── emailList.py           # Send email with shopping list
-│   ├── categorizeItems.py     # AI bulk categorization
+│   ├── categorizeItems.py     # AI bulk categorization (uncategorized only)
+│   ├── recategorizeAllItems.py # AI recategorization (ALL items)
 │   ├── improvePrompt.py       # AI prompt enrichment
 │   ├── recalculatePrices.py   # Bulk AI price updates
 │   ├── storeShop.py           # Store shop (NEW: only saves ticked items)
@@ -211,13 +213,14 @@ file management utility and is not part of the shopping list application.
   - `totalPrice` - Total price (Decimal)
   - `items` - Array of purchased items with full details
 
-### Lambda Functions (12 total)
+### Lambda Functions (13 total)
 - `ShoppingList-CreateItem` - Create items with AI processing
 - `ShoppingList-GetItems` - Retrieve items (sorted by store layout)
 - `ShoppingList-UpdateItem` - Update items (supports saveForNext)
 - `ShoppingList-DeleteItem` - Delete items
 - `ShoppingList-EmailList` - Email lists via SES
-- `ShoppingList-CategorizeItems` - AI bulk categorization
+- `ShoppingList-CategorizeItems` - AI bulk categorization (uncategorized only)
+- `ShoppingList-RecategorizeAllItems` - AI recategorization (ALL items)
 - `ShoppingList-ImprovePrompt` - AI prompt enrichment
 - `ShoppingList-RecalculatePrices` - Bulk price updates
 - `ShoppingList-StoreShop` - Save shop history (only ticked items)
@@ -241,7 +244,8 @@ file management utility and is not part of the shopping list application.
 
 **AI & Utilities**:
 - `POST /email/{userId}` - Send email
-- `POST /categorize/{userId}` - AI categorization
+- `POST /categorize/{userId}` - AI categorization (uncategorized items)
+- `POST /categorize/recalculate` - AI recategorization (ALL items)
 - `POST /improve-prompt` - AI prompt improvement
 - `POST /prices/recalculate` - Recalculate all prices
 
