@@ -37,7 +37,7 @@ jobs:
           cd lambda
 
           # Package each modified function
-          for func in createItem getItems updateItem deleteItem emailList categorizeItems improvePrompt recalculatePrices storeShop getShopHistory deleteShop; do
+          for func in createItem getItems updateItem deleteItem emailList categorizeItems recategorizeAllItems improvePrompt recalculatePrices storeShop getShopHistory deleteShop; do
             echo "Packaging ${func}..."
 
             # For getItems, include store_layout.py dependency
