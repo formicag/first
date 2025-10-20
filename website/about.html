@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Shopping List App</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* About page specific styles */
+        .about-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .about-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 2px solid #30363d;
+        }
+
+        .about-header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            color: #c9d1d9;
+            margin-bottom: 0.5rem;
+        }
+
+        .about-header .version {
+            font-size: 1.1rem;
+            color: #8b949e;
+            margin-top: 0.5rem;
+        }
+
+        .about-header .back-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            padding: 10px 20px;
+            background: #21262d;
+            color: #58a6ff;
+            text-decoration: none;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .about-header .back-link:hover {
+            background: #30363d;
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+        }
+
+        .about-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #30363d;
+        }
+
+        .section-icon {
+            font-size: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #c9d1d9;
+        }
+
+        .section-content {
+            line-height: 1.8;
+            color: #c9d1d9;
+        }
+
+        .section-content p {
+            margin-bottom: 1.25rem;
+            font-size: 1.05rem;
+        }
+
+        .section-content ul {
+            margin: 1.25rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .section-content li {
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .tech-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .tech-card:hover {
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(88, 166, 255, 0.1);
+        }
+
+        .tech-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .tech-icon {
+            font-size: 1.5rem;
+        }
+
+        .tech-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #58a6ff;
+        }
+
+        .tech-category {
+            font-size: 0.85rem;
+            color: #8b949e;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tech-description {
+            font-size: 0.95rem;
+            color: #8b949e;
+            line-height: 1.6;
+        }
+
+        .deployment-flow {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .deployment-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .deployment-step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .step-number {
+            background: #58a6ff;
+            color: #0d1117;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 0.25rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #c9d1d9;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            font-size: 0.95rem;
+            color: #8b949e;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #3fb950;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            color: #58a6ff;
+            font-weight: 600;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #3fb950;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="about-container">
+        <div class="about-header">
+            <h1>📱 About Shopping List App</h1>
+            <p class="subtitle">An AI-powered shopping list with intelligent categorization and analytics</p>
+            <p class="version">Version 1.0.0</p>
+            <a href="index.html" class="back-link">← Back to Shopping List</a>
+        </div>
+
+        <!-- Section 1: Technologies Used -->
+        <div class="about-section">
+            <div class="section-header">
+                <span class="section-icon">🔧</span>
+                <h2 class="section-title">Technologies Used</h2>
+            </div>
+            <div class="section-content">
+                <p>This application is built using a modern serverless architecture on AWS, leveraging AI for intelligent item categorization and price estimation.</p>
+
+                <div class="tech-grid">
+                    <!-- Frontend -->
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">🌐</span>
+                            <span class="tech-name">HTML/CSS/JavaScript</span>
+                        </div>
+                        <div class="tech-category">Frontend</div>
+                        <div class="tech-description">
+                            Vanilla JavaScript with modern ES6+ features. Responsive design optimized for mobile and desktop.
+                        </div>
+                    </div>
+
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">☁️</span>
+                            <span class="tech-name">CloudFront CDN</span>
+                        </div>
+                        <div class="tech-category">Content Delivery</div>
+                        <div class="tech-description">
+                            Global CDN for fast content delivery with edge caching and HTTPS support.
+                        </div>
+                    </div>
+
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">🪣</span>
+                            <span class="tech-name">Amazon S3</span>
+                        </div>
+                        <div class="tech-category">Static Hosting</div>
+                        <div class="tech-description">
+                            Static website hosting with high durability and availability.
+                        </div>
+                    </div>
+
+                    <!-- Backend -->
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">λ</span>
+                            <span class="tech-name">AWS Lambda</span>
+                        </div>
+                        <div class="tech-category">Serverless Compute</div>
+                        <div class="tech-description">
+                            Python 3.11 serverless functions for all backend logic. Auto-scaling and pay-per-use.
+                        </div>
+                    </div>
+
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">🚪</span>
+                            <span class="tech-name">API Gateway</span>
+                        </div>
+                        <div class="tech-category">API Management</div>
+                        <div class="tech-description">
+                            RESTful API endpoints with CORS support and request/response transformation.
+                        </div>
+                    </div>
+
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">🗄️</span>
+                            <span class="tech-name">Amazon DynamoDB</span>
+                        </div>
+                        <div class="tech-category">NoSQL Database</div>
+                        <div class="tech-description">
+                            Fully managed NoSQL database with single-digit millisecond latency. Partition key: userId, Sort key: itemId.
+                        </div>
+                    </div>
+
+                    <!-- AI/ML -->
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">🤖</span>
+                            <span class="tech-name">Amazon Bedrock</span>
+                        </div>
+                        <div class="tech-category">AI Service</div>
+                        <div class="tech-description">
+                            Claude 3 Haiku model for intelligent item categorization, spell checking, and price estimation.
+                        </div>
+                    </div>
+
+                    <!-- DevOps -->
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">⚙️</span>
+                            <span class="tech-name">GitHub Actions</span>
+                        </div>
+                        <div class="tech-category">CI/CD Pipeline</div>
+                        <div class="tech-description">
+                            Automated deployment pipeline triggered on git push. Builds, tests, and deploys to AWS.
+                        </div>
+                    </div>
+
+                    <div class="tech-card">
+                        <div class="tech-card-header">
+                            <span class="tech-icon">🔑</span>
+                            <span class="tech-name">AWS IAM</span>
+                        </div>
+                        <div class="tech-category">Security</div>
+                        <div class="tech-description">
+                            Fine-grained access control with SSO authentication and role-based permissions.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: High-Level Solution Summary -->
+        <div class="about-section">
+            <div class="section-header">
+                <span class="section-icon">🏗️</span>
+                <h2 class="section-title">High-Level Solution Summary</h2>
+            </div>
+            <div class="section-content">
+                <p>The Shopping List App is a serverless, AI-powered application designed to streamline grocery shopping with intelligent categorization and spending analytics.</p>
+
+                <h3 style="color: #58a6ff; margin-top: 2rem; margin-bottom: 1rem;">Architecture Overview</h3>
+                <p>The application follows a modern serverless architecture pattern with clear separation of concerns:</p>
+
+                <ul class="feature-list">
+                    <li><strong>Frontend Layer:</strong> Static HTML/CSS/JavaScript hosted on S3 and delivered globally via CloudFront CDN</li>
+                    <li><strong>API Layer:</strong> RESTful API Gateway exposing endpoints for CRUD operations, AI processing, and analytics</li>
+                    <li><strong>Compute Layer:</strong> AWS Lambda functions (Python 3.11) handling business logic, data validation, and AI integration</li>
+                    <li><strong>Data Layer:</strong> DynamoDB for persistent storage with partition key (userId) and sort key (itemId) for multi-user support</li>
+                    <li><strong>AI Layer:</strong> Amazon Bedrock with Claude 3 Haiku for intelligent item processing</li>
+                </ul>
+
+                <h3 style="color: #58a6ff; margin-top: 2rem; margin-bottom: 1rem;">Core Features</h3>
+                <ul class="feature-list">
+                    <li><strong>Smart Item Creation:</strong> AI automatically corrects spelling, capitalizes names, estimates UK prices (Sainsbury's), and assigns categories</li>
+                    <li><strong>Intelligent Categorization:</strong> 16 UK shopping centre categories matching real store layouts (Fresh Produce, Dairy & Eggs, etc.)</li>
+                    <li><strong>Fallback Categorization:</strong> Rule-based keyword matching ensures items are NEVER uncategorized, even if AI fails</li>
+                    <li><strong>Shopping Workflow:</strong> "Save for Next Shop" feature allows users to mark frequently-bought items for future shopping trips</li>
+                    <li><strong>Shop History:</strong> Save completed shops with timestamps, view past shopping trips, delete old records</li>
+                    <li><strong>Analytics Dashboard:</strong> Real-time category breakdown of current list, historical spending analysis, and budget insights</li>
+                    <li><strong>Email Integration:</strong> Send formatted shopping list via email for on-the-go access</li>
+                    <li><strong>Multi-User Support:</strong> Separate lists for Gianluca and Nicole with shared infrastructure</li>
+                    <li><strong>Store Layout Optimization:</strong> Items sorted by store aisle order for efficient in-store navigation</li>
+                </ul>
+
+                <h3 style="color: #58a6ff; margin-top: 2rem; margin-bottom: 1rem;">Data Flow Example</h3>
+                <p>When adding a new item:</p>
+                <ol>
+                    <li>User enters item name (e.g., "mlk") and quantity</li>
+                    <li>Frontend sends POST request to API Gateway</li>
+                    <li>Lambda function invokes Bedrock AI with item name</li>
+                    <li>AI returns: correctedName="Milk", category="Dairy & Eggs", estimatedPrice=1.25</li>
+                    <li>If AI fails, fallback categorizer uses keyword matching (milk → Dairy & Eggs)</li>
+                    <li>Lambda checks for duplicates in DynamoDB</li>
+                    <li>Item saved with UUID, timestamp, and AI-processed data</li>
+                    <li>Frontend updates UI with categorized, sorted item list</li>
+                </ol>
+
+                <h3 style="color: #58a6ff; margin-top: 2rem; margin-bottom: 1rem;">Key Design Decisions</h3>
+                <ul class="feature-list">
+                    <li><strong>Serverless Architecture:</strong> Zero server management, automatic scaling, pay-per-use pricing</li>
+                    <li><strong>AI-First Approach:</strong> Bedrock handles categorization, spell-checking, and price estimation with human-like accuracy</li>
+                    <li><strong>Resilience:</strong> Fallback categorization ensures 100% categorization even during AI throttling or failures</li>
+                    <li><strong>UK-Optimized:</strong> Categories, prices, and terminology tailored for UK supermarkets (Tesco, Sainsbury's, Asda)</li>
+                    <li><strong>Mobile-First:</strong> Responsive design optimized for phone-based shopping</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Section 3: Deployment Pipeline -->
+        <div class="about-section">
+            <div class="section-header">
+                <span class="section-icon">🚀</span>
+                <h2 class="section-title">How Deployment Works</h2>
+            </div>
+            <div class="section-content">
+                <p>The application uses a fully automated CI/CD pipeline powered by GitHub Actions. Every code change triggers an automated deployment process.</p>
+
+                <div class="deployment-flow">
+                    <div class="deployment-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Developer Commits Code</div>
+                            <div class="step-description">
+                                Developer makes changes to Lambda functions or frontend code and commits to the <strong>main</strong> branch.
+                                <div class="code-block">git add .<br>git commit -m "Add feature"<br>git push origin main</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="deployment-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">GitHub Actions Triggered</div>
+                            <div class="step-description">
+                                Push to main triggers the workflow defined in <code>.github/workflows/deploy.yml</code>. GitHub Actions spins up an Ubuntu runner with AWS credentials configured via SSO.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="deployment-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Lambda Functions Packaged</div>
+                            <div class="step-description">
+                                For each Lambda function, the workflow:
+                                <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+                                    <li>Zips the Python source code (e.g., createItem.py, cognito_helper.py)</li>
+                                    <li>Creates deployment package (e.g., createItem.zip)</li>
+                                    <li>Uploads zip to AWS Lambda using <code>aws lambda update-function-code</code></li>
+                                </ul>
+                                <div class="code-block">Functions deployed: createItem, getItems, updateItem, deleteItem, emailList, categorizeItems, recategorizeAllItems, improvePrompt, recalculatePrices, storeShop, getShopHistory, deleteShop</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="deployment-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Frontend Deployed to S3</div>
+                            <div class="step-description">
+                                Static assets (HTML, CSS, JS) are synced to the S3 bucket using:
+                                <div class="code-block">aws s3 sync ./website s3://shoppinglist.gianlucaformica.net/</div>
+                                Files uploaded: index.html, dashboard.html, about.html, app.js, dashboard.js, styles.css, etc.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="deployment-step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <div class="step-title">CloudFront Cache Invalidated</div>
+                            <div class="step-description">
+                                To ensure users see the latest version immediately, CloudFront cache is invalidated:
+                                <div class="code-block">aws cloudfront create-invalidation --distribution-id E2G8S9GOXLBFEZ --paths "/*"</div>
+                                This purges the global CDN cache and fetches fresh content from S3.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="deployment-step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <div class="step-title">Deployment Complete</div>
+                            <div class="step-description">
+                                Entire deployment typically completes in <strong>2-3 minutes</strong>. Changes are live globally:
+                                <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+                                    <li>Lambda functions updated with new code</li>
+                                    <li>Frontend refreshed on all CloudFront edge locations</li>
+                                    <li>Zero downtime - seamless rollout</li>
+                                    <li>GitHub Actions logs provide full deployment visibility</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="color: #58a6ff; margin-top: 2rem; margin-bottom: 1rem;">Infrastructure as Code</h3>
+                <p>Initial infrastructure setup was done using AWS CLI and deployment scripts:</p>
+                <ul class="feature-list">
+                    <li><strong>deploy-shop-history-endpoint.sh:</strong> Creates Lambda, API Gateway resources, and permissions for shop history</li>
+                    <li><strong>deploy-recategorize-endpoint.sh:</strong> Sets up recategorization endpoint with POST method and CORS</li>
+                    <li><strong>deploy-delete-shop-endpoint.sh:</strong> Configures shop deletion API with DELETE method</li>
+                    <li><strong>backfill_emojis.sh:</strong> Batch script for adding emojis to existing items</li>
+                </ul>
+
+                <h3 style="color: #58a6ff; margin-top: 2rem; margin-bottom: 1rem;">Monitoring & Observability</h3>
+                <ul class="feature-list">
+                    <li><strong>CloudWatch Logs:</strong> All Lambda invocations logged with detailed execution traces</li>
+                    <li><strong>Error Tracking:</strong> Automatic capture of exceptions with stack traces</li>
+                    <li><strong>Performance Metrics:</strong> Execution duration, memory usage, and cold start monitoring</li>
+                    <li><strong>AI Insights:</strong> Bedrock call success rates, throttling events, and category accuracy</li>
+                </ul>
+
+                <h3 style="color: #58a6ff; margin-top: 2rem; margin-bottom: 1rem;">Security & Authentication</h3>
+                <ul class="feature-list">
+                    <li><strong>AWS SSO:</strong> AdministratorAccess-016164185850 profile for secure deployments</li>
+                    <li><strong>IAM Roles:</strong> Lambda execution roles with least-privilege permissions</li>
+                    <li><strong>CORS Configuration:</strong> API Gateway configured with proper CORS headers</li>
+                    <li><strong>HTTPS Only:</strong> CloudFront enforces HTTPS for all requests</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; padding: 2rem 0; color: #8b949e; border-top: 1px solid #30363d; margin-top: 2rem;">
+            <p>Built with ❤️ using AWS Serverless Architecture and Claude AI</p>
+            <p style="margin-top: 0.5rem;">© 2025 Shopping List App - Version 1.0.0</p>
+        </div>
+    </div>
+</body>
+</html>
