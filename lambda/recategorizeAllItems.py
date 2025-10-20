@@ -44,6 +44,80 @@ UK_CATEGORIES = [
     "Baby & Child"
 ]
 
+# Rule-based fallback categorization - NEVER returns "Uncategorized"
+def fallback_categorize(item_name):
+    """
+    Rule-based categorizer for when AI fails. NEVER returns "Uncategorized".
+    Uses keyword matching and smart defaults.
+    """
+    item_lower = item_name.lower().strip()
+
+    # Dairy & Eggs
+    if any(word in item_lower for word in ['milk', 'butter', 'cheese', 'yogurt', 'yoghurt', 'cream', 'eggs', 'egg']):
+        return "Dairy & Eggs"
+
+    # Meat & Poultry
+    if any(word in item_lower for word in ['chicken', 'beef', 'pork', 'lamb', 'turkey', 'sausage', 'bacon', 'ham', 'chops', 'steak', 'mince']):
+        return "Meat & Poultry"
+
+    # Fish & Seafood
+    if any(word in item_lower for word in ['salmon', 'tuna', 'cod', 'fish', 'prawns', 'shrimp', 'seafood']):
+        # Check if it's canned
+        if any(word in item_lower for word in ['canned', 'tinned', 'can', 'tin']):
+            return "Canned & Jarred"
+        return "Fish & Seafood"
+
+    # Bakery & Bread
+    if any(word in item_lower for word in ['bread', 'baguette', 'rolls', 'buns', 'bagels', 'croissant', 'rye']):
+        return "Bakery & Bread"
+
+    # Fresh Produce - Fruit
+    if any(word in item_lower for word in ['apple', 'banana', 'orange', 'grape', 'berry', 'melon', 'mango', 'pear', 'peach', 'plum', 'kiwi', 'pineapple', 'lemon', 'lime']):
+        return "Fresh Produce - Fruit"
+
+    # Fresh Produce - Vegetables
+    if any(word in item_lower for word in ['potato', 'carrot', 'onion', 'tomato', 'pepper', 'broccoli', 'cauliflower', 'cabbage', 'lettuce', 'cucumber', 'courgette', 'aubergine', 'mushroom', 'vegetables']):
+        # Check if frozen
+        if 'frozen' in item_lower:
+            return "Frozen Foods"
+        return "Fresh Produce - Vegetables"
+
+    # Fresh Produce - Herbs & Salads
+    if any(word in item_lower for word in ['herb', 'basil', 'parsley', 'coriander', 'mint', 'salad', 'tzatziki', 'hummus']):
+        return "Fresh Produce - Herbs & Salads"
+
+    # Frozen Foods
+    if any(word in item_lower for word in ['frozen', 'ice cream', 'chips']) and 'frozen' in item_lower:
+        return "Frozen Foods"
+
+    # Health & Beauty
+    if any(word in item_lower for word in ['shampoo', 'soap', 'toothpaste', 'toothbrush', 'deodorant', 'face wash', 'cotton wool', 'hand wash', 'cetirizine', 'contact lens', 'neutrogena']):
+        return "Health & Beauty"
+
+    # Household & Cleaning
+    if any(word in item_lower for word in ['cleaning', 'cleaner', 'detergent', 'washing', 'dishwasher', 'toilet', 'bleach', 'domestos', 'bags', 'bin', 'tissue', 'kitchen roll', 'air freshener']):
+        return "Household & Cleaning"
+
+    # Beverages
+    if any(word in item_lower for word in ['water', 'juice', 'coffee', 'tea', 'teabags', 'cola', 'lemonade', 'drink', 'kombucha', 'kambucha', 'kefir']):
+        return "Beverages"
+
+    # Alcohol & Wine
+    if any(word in item_lower for word in ['beer', 'wine', 'vodka', 'whisky', 'gin', 'rum', 'alcohol', 'cider', 'lager']):
+        return "Alcohol & Wine"
+
+    # Snacks & Confectionery
+    if any(word in item_lower for word in ['chocolate', 'crisps', 'chips', 'biscuit', 'cookie', 'sweet', 'candy', 'bounty', 'snack']):
+        return "Snacks & Confectionery"
+
+    # Canned & Jarred
+    if any(word in item_lower for word in ['canned', 'tinned', 'can', 'tin', 'jar', 'jarred', 'tuna can']):
+        return "Canned & Jarred"
+
+    # Pantry & Dry Goods (most generic fallback - handles: rice, pasta, flour, lentils, etc.)
+    logger.warning(f"No specific category match for '{item_name}'. Using Pantry & Dry Goods as default.")
+    return "Pantry & Dry Goods"
+
 
 def lambda_handler(event, context):
     """
@@ -126,9 +200,9 @@ def lambda_handler(event, context):
                 logger.info(f"  → AI returned category: '{new_category}'")
 
                 # Validate the new category
-                if new_category not in UK_CATEGORIES and new_category != 'Uncategorized':
-                    logger.warning(f"  ⚠️  AI returned INVALID category '{new_category}', using 'Uncategorized'")
-                    new_category = 'Uncategorized'
+                if new_category not in UK_CATEGORIES:
+                    logger.warning(f"  ⚠️  AI returned INVALID category '{new_category}', using fallback categorization")
+                    new_category = fallback_categorize(item_name)
 
                 # Update item category in DynamoDB
                 logger.info(f"  → Updating DynamoDB: userId={user_id_item}, itemId={item_id}")
@@ -318,16 +392,19 @@ Return ONLY valid JSON in this exact format:
         # Parse JSON response
         try:
             result = json.loads(response_text)
-            category = result.get('category', 'Uncategorized')
+            category = result.get('category')
+            if not category:
+                logger.warning(f"    ⚠️  Bedrock: No category in response for '{item_name}'. Using fallback.")
+                category = fallback_categorize(item_name)
             logger.info(f"    🤖 Bedrock: Parsed category: '{category}'")
         except json.JSONDecodeError as je:
             logger.error(f"    ❌ Bedrock: Invalid JSON response for '{item_name}': {response_text}")
-            category = 'Uncategorized'
+            category = fallback_categorize(item_name)
 
         # Validate category is in our list
-        if category not in UK_CATEGORIES and category != 'Uncategorized':
-            logger.warning(f"    ⚠️  Bedrock: Invalid category '{category}' for '{item_name}'. Using 'Uncategorized'.")
-            category = 'Uncategorized'
+        if category not in UK_CATEGORIES:
+            logger.warning(f"    ⚠️  Bedrock: Invalid category '{category}' for '{item_name}'. Using fallback.")
+            category = fallback_categorize(item_name)
 
         logger.info(f"    ✅ Bedrock: Final category: '{category}'")
         return {
@@ -337,5 +414,5 @@ Return ONLY valid JSON in this exact format:
     except Exception as e:
         logger.error(f"    ❌ Bedrock: Error for '{item_name}': {str(e)}")
         return {
-            'category': 'Uncategorized'
+            'category': fallback_categorize(item_name)
         }

@@ -48,6 +48,80 @@ UK_CATEGORIES = [
     "Baby & Child"
 ]
 
+# Rule-based fallback categorization - NEVER returns "Uncategorized"
+def fallback_categorize(item_name):
+    """
+    Rule-based categorizer for when AI fails. NEVER returns "Uncategorized".
+    Uses keyword matching and smart defaults.
+    """
+    item_lower = item_name.lower().strip()
+
+    # Dairy & Eggs
+    if any(word in item_lower for word in ['milk', 'butter', 'cheese', 'yogurt', 'yoghurt', 'cream', 'eggs', 'egg']):
+        return "Dairy & Eggs"
+
+    # Meat & Poultry
+    if any(word in item_lower for word in ['chicken', 'beef', 'pork', 'lamb', 'turkey', 'sausage', 'bacon', 'ham', 'chops', 'steak', 'mince']):
+        return "Meat & Poultry"
+
+    # Fish & Seafood
+    if any(word in item_lower for word in ['salmon', 'tuna', 'cod', 'fish', 'prawns', 'shrimp', 'seafood']):
+        # Check if it's canned
+        if any(word in item_lower for word in ['canned', 'tinned', 'can', 'tin']):
+            return "Canned & Jarred"
+        return "Fish & Seafood"
+
+    # Bakery & Bread
+    if any(word in item_lower for word in ['bread', 'baguette', 'rolls', 'buns', 'bagels', 'croissant', 'rye']):
+        return "Bakery & Bread"
+
+    # Fresh Produce - Fruit
+    if any(word in item_lower for word in ['apple', 'banana', 'orange', 'grape', 'berry', 'melon', 'mango', 'pear', 'peach', 'plum', 'kiwi', 'pineapple', 'lemon', 'lime']):
+        return "Fresh Produce - Fruit"
+
+    # Fresh Produce - Vegetables
+    if any(word in item_lower for word in ['potato', 'carrot', 'onion', 'tomato', 'pepper', 'broccoli', 'cauliflower', 'cabbage', 'lettuce', 'cucumber', 'courgette', 'aubergine', 'mushroom', 'vegetables']):
+        # Check if frozen
+        if 'frozen' in item_lower:
+            return "Frozen Foods"
+        return "Fresh Produce - Vegetables"
+
+    # Fresh Produce - Herbs & Salads
+    if any(word in item_lower for word in ['herb', 'basil', 'parsley', 'coriander', 'mint', 'salad', 'tzatziki', 'hummus']):
+        return "Fresh Produce - Herbs & Salads"
+
+    # Frozen Foods
+    if any(word in item_lower for word in ['frozen', 'ice cream', 'chips']) and 'frozen' in item_lower:
+        return "Frozen Foods"
+
+    # Health & Beauty
+    if any(word in item_lower for word in ['shampoo', 'soap', 'toothpaste', 'toothbrush', 'deodorant', 'face wash', 'cotton wool', 'hand wash', 'cetirizine', 'contact lens', 'neutrogena']):
+        return "Health & Beauty"
+
+    # Household & Cleaning
+    if any(word in item_lower for word in ['cleaning', 'cleaner', 'detergent', 'washing', 'dishwasher', 'toilet', 'bleach', 'domestos', 'bags', 'bin', 'tissue', 'kitchen roll', 'air freshener']):
+        return "Household & Cleaning"
+
+    # Beverages
+    if any(word in item_lower for word in ['water', 'juice', 'coffee', 'tea', 'teabags', 'cola', 'lemonade', 'drink', 'kombucha', 'kambucha', 'kefir']):
+        return "Beverages"
+
+    # Alcohol & Wine
+    if any(word in item_lower for word in ['beer', 'wine', 'vodka', 'whisky', 'gin', 'rum', 'alcohol', 'cider', 'lager']):
+        return "Alcohol & Wine"
+
+    # Snacks & Confectionery
+    if any(word in item_lower for word in ['chocolate', 'crisps', 'chips', 'biscuit', 'cookie', 'sweet', 'candy', 'bounty', 'snack']):
+        return "Snacks & Confectionery"
+
+    # Canned & Jarred
+    if any(word in item_lower for word in ['canned', 'tinned', 'can', 'tin', 'jar', 'jarred', 'tuna can']):
+        return "Canned & Jarred"
+
+    # Pantry & Dry Goods (most generic fallback - handles: rice, pasta, flour, lentils, etc.)
+    logger.warning(f"No specific category match for '{item_name}'. Using Pantry & Dry Goods as default.")
+    return "Pantry & Dry Goods"
+
 
 def lambda_handler(event, context):
     """
@@ -133,6 +207,44 @@ def lambda_handler(event, context):
         category = ai_result['category']
 
         logger.info(f"AI processed: '{item_name}' → '{corrected_name}' (£{estimated_price:.2f}, {category})")
+
+        # Check for duplicates - query all items for this user
+        logger.info(f"Checking for duplicates for user {user_id}")
+        try:
+            response = table.query(
+                KeyConditionExpression='userId = :userId',
+                ExpressionAttributeValues={
+                    ':userId': user_id
+                }
+            )
+
+            existing_items = response.get('Items', [])
+            normalized_corrected = corrected_name.lower().strip()
+
+            # Check if any existing item matches (case-insensitive)
+            for existing_item in existing_items:
+                existing_name = existing_item.get('itemName', '').lower().strip()
+                if existing_name == normalized_corrected:
+                    logger.warning(f"Duplicate detected: '{corrected_name}' already exists for {user_id}")
+                    return {
+                        'statusCode': 409,  # Conflict status code
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({
+                            'error': 'Duplicate item',
+                            'message': f"'{corrected_name}' is already in your shopping list",
+                            'existingItem': {
+                                'itemName': existing_item.get('itemName'),
+                                'quantity': int(existing_item.get('quantity', 1)),
+                                'itemId': existing_item.get('itemId')
+                            }
+                        })
+                    }
+        except Exception as e:
+            logger.error(f"Error checking for duplicates: {str(e)}")
+            # Continue with creation even if duplicate check fails
 
         # Generate UUID and timestamp
         item_id = str(uuid.uuid4())
@@ -319,12 +431,12 @@ TASK 4 - Categorization:
             result = json.loads(response_text)
             corrected_name = result.get('correctedName', item_name)
             estimated_price = result.get('estimatedPrice', 0.0)  # Default to 0 if no price
-            category = result.get('category', 'Uncategorized')
+            category = result.get('category', fallback_categorize(item_name))
 
             # Validate category is in our list
-            if category not in UK_CATEGORIES and category != 'Uncategorized':
-                logger.warning(f"AI returned invalid category '{category}'. Using 'Uncategorized'.")
-                category = 'Uncategorized'
+            if category not in UK_CATEGORIES:
+                logger.warning(f"AI returned invalid category '{category}'. Using fallback categorization.")
+                category = fallback_categorize(item_name)
 
             # Validate price is a positive number
             try:
@@ -348,7 +460,7 @@ TASK 4 - Categorization:
             return {
                 'correctedName': corrected_name,
                 'estimatedPrice': 0.0,
-                'category': 'Uncategorized'
+                'category': fallback_categorize(item_name)
             }
 
     except Exception as e:
@@ -358,5 +470,5 @@ TASK 4 - Categorization:
         return {
             'correctedName': corrected_name,
             'estimatedPrice': 0.0,
-            'category': 'Uncategorized'
+            'category': fallback_categorize(item_name)
         }

@@ -1,13 +1,12 @@
 """
 Lambda function to store today's shop in history.
 
-NEW WORKFLOW:
+WORKFLOW:
 1. Save only TICKED items (bought=True) to shop history
-2. DELETE ticked items from current shopping list
-3. KEEP items marked saveForNext=True
-4. KEEP items NOT ticked (bought=False)
+2. UNTICK items (set bought=False) - keep them on the list for next shop
+3. Items remain on shopping list for future shops
 
-This prepares the list for the next shop with saved and unpurchased items.
+This saves a record of what was bought while keeping items for next time.
 """
 
 import json
@@ -31,11 +30,10 @@ def lambda_handler(event, context):
     """
     Store today's shop to history (only ticked items).
 
-    New workflow:
+    Workflow:
     1. Find all items with bought=True (ticked)
     2. Save these to shop history
-    3. Delete these ticked items from shopping list
-    4. Keep items with saveForNext=True or bought=False
+    3. Untick these items (set bought=False) - keep them on list for next shop
 
     Returns:
         dict: Response with status code and stored shop details
@@ -147,22 +145,26 @@ def lambda_handler(event, context):
         shop_history_table.put_item(Item=shop_record)
         logger.info(f"Shop {shop_id} saved to history with {total_items} items, £{total_price:.2f}")
 
-        # DELETE ticked items from shopping list
-        deleted_count = 0
+        # UNTICK items (set bought=False) - keep them on the list for next shop
+        unticked_count = 0
         for item in ticked_items:
             try:
-                shopping_list_table.delete_item(
+                shopping_list_table.update_item(
                     Key={
                         'userId': item['userId'],
                         'itemId': item['itemId']
+                    },
+                    UpdateExpression='SET bought = :false',
+                    ExpressionAttributeValues={
+                        ':false': False
                     }
                 )
-                deleted_count += 1
+                unticked_count += 1
             except Exception as e:
-                logger.error(f"Error deleting item {item.get('itemId')}: {str(e)}")
+                logger.error(f"Error unticking item {item.get('itemId')}: {str(e)}")
 
-        logger.info(f"Deleted {deleted_count} ticked items from shopping list")
-        logger.info(f"Kept {len(non_ticked_items)} non-ticked items for next shop")
+        logger.info(f"Unticked {unticked_count} items - kept on list for next shop")
+        logger.info(f"Total items on list: {len(user_items)}")
 
         return {
             'statusCode': 201,
@@ -178,8 +180,8 @@ def lambda_handler(event, context):
                     'totalItems': total_items,
                     'totalPrice': float(total_price)
                 },
-                'itemsDeleted': deleted_count,
-                'itemsKept': len(non_ticked_items)
+                'itemsUnticked': unticked_count,
+                'totalItemsOnList': len(user_items)
             })
         }
 
